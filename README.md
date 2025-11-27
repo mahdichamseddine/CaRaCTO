@@ -1,8 +1,8 @@
 # CaRaCTO
 
 This repository contains the official Python implementation of the research papers:
-- **CaRaCTO**: *Robust Camera-Radar Extrinsic Calibration with Triple Constraint Optimization*, published at ICPRAM 2024 (Best Industrial Paper Award).
-- **CaRaCTO-3D**: *From Camera-Radar Calibration to Scene Reconstruction*, published in SN Computer Science 2025.
+- [**CaRaCTO**: *Robust Camera-Radar Extrinsic Calibration with Triple Constraint Optimization*, published at ICPRAM 2024 (Best Industrial Paper Award).](https://www.scitepress.org/Link.aspx?doi=10.5220/0012369700003654)
+- [**CaRaCTO-3D**: *From Camera-Radar Calibration to Scene Reconstruction*, published in SN Computer Science 2025.](https://link.springer.com/article/10.1007/s42979-025-04355-w)
 
 This project provides the tools to perform extrinsic calibration between a camera and a radar sensor and to use this calibration to generate dense 3D reconstructions of the environment.
 
