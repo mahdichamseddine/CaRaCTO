@@ -1,0 +1,26 @@
+[build-system]
+requires      = ["setuptools >= 80"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name            = "caracto-3d"
+version         = "2.0"
+readme          = "README.md"
+requires-python = ">=3.11"
+license         = { file = "LICENSE" }
+
+authors     = [{ name = "Mahdi Chamseddine", email = "mahdi.chamseddine@dfki.de" }]
+maintainers = [{ name = "Mahdi Chamseddine", email = "mahdi.chamseddine@dfki.de" }]
+
+dependencies = [
+    "matplotlib",
+    "numpy",
+    "open3d",
+    "opencv-python",
+    "scipy",
+    "torch",
+    "transformers",
+]
+
+[tool.setuptools.packages.find]
+include = ["caracto*"]
