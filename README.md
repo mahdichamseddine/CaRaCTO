@@ -36,7 +36,7 @@ The primary goal of this project is to perform calibration between a camera and 
     # Uses Python 3.12
     # Clone the repository to your local machine:
     git clone https://github.com/dfki-av/CaRaCTO-3D.git
-    cd CaRaCTO
+    cd CaRaCTO-3D
     
     # Install the required dependencies using `uv`
     uv sync
