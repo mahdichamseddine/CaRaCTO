@@ -1,4 +1,4 @@
-# CaRaCTO
+# CaRaCTO-3D
 
 This repository contains the official Python implementation of the research papers:
 - [**CaRaCTO**: *Robust Camera-Radar Extrinsic Calibration with Triple Constraint Optimization*, published at ICPRAM 2024 (Best Industrial Paper Award).](https://www.scitepress.org/Link.aspx?doi=10.5220/0012369700003654)
@@ -35,7 +35,7 @@ The primary goal of this project is to perform calibration between a camera and 
 ```bash
     # Uses Python 3.12
     # Clone the repository to your local machine:
-    git clone https://github.com/mahdichamseddine/CaRaCTO.git
+    git clone https://github.com/dfki-av/CaRaCTO-3D.git
     cd CaRaCTO
     
     # Install the required dependencies using `uv`
