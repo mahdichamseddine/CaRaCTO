@@ -10,13 +10,17 @@ def get_camera_matrix(
     height = image_dimensions[0]
     width = image_dimensions[1]
     new_camera_matrix, roi = cv2.getOptimalNewCameraMatrix(
-        camera_matrix, dist_coeff, (width, height), 1, (width, height)
+        camera_matrix,
+        dist_coeff,
+        (width, height),
+        1,
+        (width, height),
     )
     x, y, w, h = roi
 
     return (
         new_camera_matrix,
-        np.linalg.inv(new_camera_matrix),  # type: ignore
+        np.linalg.inv(new_camera_matrix),
         (x, y, w, h),
     )
 

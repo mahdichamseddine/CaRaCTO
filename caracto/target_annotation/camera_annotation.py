@@ -1,7 +1,10 @@
+import sys
+from pathlib import Path
+
 import cv2
 import numpy as np
 
-from caracto.cli import get_main_parser
+from caracto.cli import get_main_parser, resolve_dataset_path
 from caracto.common import HD_1080
 from caracto.dataset.camera_matrix import get_camera_matrix, undistort_and_crop
 from caracto.dataset.file_readers import read_file
@@ -25,13 +28,17 @@ class CornerReflectorAnnotator:
         self.old_camera_matrix = np.array(camera_intrinsics["camera_matrix"])
         self.dist_coeff = np.array(camera_intrinsics["dist_coeff"])
         self.camera_matrix, _, self.roi = get_camera_matrix(
-            self.old_camera_matrix, self.dist_coeff, image_dimensions
+            self.old_camera_matrix,
+            self.dist_coeff,
+            image_dimensions,
         )
 
         self.annotations = {}
 
     def annotate_image(
-        self, measurement_name: str, input_image: np.ndarray
+        self,
+        measurement_name: str,
+        input_image: np.ndarray,
     ) -> tuple[dict, np.ndarray]:
         image = undistort_and_crop(
             input_image,
@@ -54,14 +61,14 @@ class CornerReflectorAnnotator:
 
     def annotation_3d_estimation(self, annotation: dict) -> tuple[dict, np.ndarray]:
         image_points_2d, target_points_3d = self.__get_correspondences(annotation)
-        success, rotation_vector, translation_vector = cv2.solvePnP(
+        _success, rotation_vector, translation_vector = cv2.solvePnP(
             objectPoints=target_points_3d,
             imagePoints=image_points_2d,
             cameraMatrix=self.camera_matrix,
             distCoeffs=np.zeros((5, 1)),
             flags=0,
         )
-        reprojection_3d2d, jacobian = cv2.projectPoints(
+        reprojection_3d2d, _jacobian = cv2.projectPoints(
             objectPoints=target_points_3d,
             rvec=rotation_vector,
             tvec=translation_vector,
@@ -100,18 +107,19 @@ class CornerReflectorAnnotator:
         target_points_3d.append([0, self.corner_edges_m[1], 0])
 
         return np.array(image_points_2d, dtype=float), np.array(
-            target_points_3d, dtype=float
+            target_points_3d,
+            dtype=float,
         )
 
-    def save_annotations(self, path) -> None:
+    def save_annotations(self, path: Path) -> None:
         # TODO
         pass
 
 
-def main():
+def main() -> None:
     parser = get_main_parser()
     args = parser.parse_args()
-    calibration_path = args.dataset_path
+    calibration_path = resolve_dataset_path(args)
 
     radar_path = calibration_path / "RadarData"
     intrinsics_path = calibration_path / "calibration_matrix.yaml"
@@ -133,10 +141,10 @@ def main():
         radar_file = radar_path / (key + ".pickle")
         output_test = read_file(radar_file)
 
-        for image in output_test["Camera"]:
-            annotation, reprojection_3d2d = annotator.annotate_image(key, image)
+        for raw_image in output_test["Camera"]:
+            annotation, reprojection_3d2d = annotator.annotate_image(key, raw_image)
             image = undistort_and_crop(
-                image,
+                raw_image,
                 annotator.old_camera_matrix,
                 annotator.dist_coeff,
                 annotator.camera_matrix,
@@ -145,7 +153,7 @@ def main():
             if len(annotation):
                 print(annotation["distance_m"])
                 image_anns = draw_annotation(image, annotation, annotate_mode=False)
-                image_repr = draw_reprojection(image, reprojection_3d2d)
+                draw_reprojection(image, reprojection_3d2d)
                 cv2.imshow("Video", image_anns)
             else:
                 cv2.imshow("Video", image)
@@ -154,13 +162,9 @@ def main():
             if key_press == ord("c"):  # cancel
                 cv2.destroyWindow("Video")
                 break
-            elif key_press == ord("q"):
+            if key_press == ord("q"):
                 cv2.destroyWindow("Video")
-                exit()
-
-    # if extract_cam:
-    #     with open(os.path.join(radar_path, "camera_data.json"), "w") as fp:
-    #         json.dump(annotator.annotations, fp)
+                sys.exit()
 
 
 if __name__ == "__main__":

@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 import torch
-import torch.nn.functional as F
+import torch.nn.functional as F  # noqa: N812 (universal PyTorch convention)
 from transformers import AutoImageProcessor, AutoModelForDepthEstimation
 from transformers.utils.generic import TensorType
 
@@ -9,7 +9,8 @@ from caracto.ml.common import ModelWeights, get_torch_device
 
 
 def depth_estimation(
-    image: np.ndarray, border_size: int = 0
+    image: np.ndarray,
+    border_size: int = 0,
 ) -> tuple[np.ndarray, np.ndarray]:
     model = AutoModelForDepthEstimation.from_pretrained(ModelWeights.DAV2_LARGE)
     image_processor = AutoImageProcessor.from_pretrained(ModelWeights.DAV2_LARGE)

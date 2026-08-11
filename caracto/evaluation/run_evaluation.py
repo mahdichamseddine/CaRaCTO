@@ -5,7 +5,7 @@ import numpy as np
 from caracto.calibration.caracto_calibration import RangeMethod
 from caracto.calibration.run_calibration import run_calibration
 from caracto.calibration.transformation import transformation_matrix
-from caracto.cli import get_main_parser
+from caracto.cli import get_main_parser, resolve_dataset_path
 from caracto.common import HD_1080, X0
 from caracto.reconstruction.point_reconstruction import (
     calculate_mean_error,
@@ -47,7 +47,7 @@ def compute_errors(
                 camera_pixel.T,
                 radar_range,
                 radar_azimuth,
-            )
+            ),
         )
 
     ground_truth = np.array(ground_truth)
@@ -99,7 +99,7 @@ def single_run(
 def main() -> None:
     parser = get_main_parser()
     args = parser.parse_args()
-    calibration_path = args.dataset_path
+    calibration_path = resolve_dataset_path(args)
 
     # Best initialization
     errors_0 = single_run(calibration_path, X0, HD_1080)

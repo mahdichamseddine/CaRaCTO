@@ -13,13 +13,13 @@ def min_screen_height(default_height: int = 1080) -> int:
         int: Screen height in pixels.
     """
     try:
-        import mss
+        import mss  # noqa: PLC0415 (optional dependency, not in pyproject.toml)
     except ImportError:
         message = (
             f"'mss' package not found, can't optimize interface to monitor height. "
             f"Using default value: {default_height}"
         )
-        warnings.warn(message)
+        warnings.warn(message, stacklevel=2)
         return default_height
     sct = mss.mss()
     min_height = 0
@@ -33,7 +33,7 @@ def min_screen_height(default_height: int = 1080) -> int:
     return min_height
 
 
-def main():
+def main() -> None:
     print(f"Minimum screen height found is: {min_screen_height()} px.")
 
 

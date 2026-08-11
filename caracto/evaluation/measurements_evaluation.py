@@ -2,7 +2,7 @@ import json
 
 from tqdm import tqdm
 
-from caracto.cli import get_main_parser
+from caracto.cli import get_main_parser, resolve_dataset_path
 from caracto.common import HD_1080, MAX_EVAL_RUNS, OUTPUT_DIR, X0
 from caracto.evaluation.run_evaluation import single_run
 
@@ -10,7 +10,7 @@ from caracto.evaluation.run_evaluation import single_run
 def main() -> None:
     parser = get_main_parser()
     args = parser.parse_args()
-    calibration_path = args.dataset_path
+    calibration_path = resolve_dataset_path(args)
 
     results_dict = {}
 
@@ -20,13 +20,17 @@ def main() -> None:
             try:
                 results_dict[s].append(
                     single_run(
-                        calibration_path, X0, HD_1080, simulation_std=None, subset=s
-                    )
+                        calibration_path,
+                        X0,
+                        HD_1080,
+                        simulation_std=None,
+                        subset=s,
+                    ),
                 )
             except ValueError:
                 break
 
-    with open(OUTPUT_DIR / "measurements_evaluation.json", "w") as f:
+    with (OUTPUT_DIR / "measurements_evaluation.json").open("w") as f:
         json.dump(results_dict, f)
 
 

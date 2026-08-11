@@ -1,8 +1,10 @@
+import sys
 from typing import Any
 
 import cv2
 import numpy as np
-from drawing import draw_rectangle
+
+from caracto.target_annotation.drawing import draw_rectangle
 
 
 def select_patch(input_image: np.ndarray) -> np.ndarray | None:
@@ -13,11 +15,16 @@ def select_patch(input_image: np.ndarray) -> np.ndarray | None:
         input_image (np.ndarray): The input image to select the patch for cropping.
 
     Returns:
-        np.ndarray: Array containing the top left and bottom right corners of the patch selected.
+        np.ndarray: Array containing the top left and bottom right corners of
+        the patch selected.
     """
 
     def select_patch_callback(
-        event: int, x: int, y: int, flags: int, param: Any | None
+        event: int,
+        x: int,
+        y: int,
+        _flags: int,
+        _param: Any | None,  # noqa: ANN401 (OpenCV callback param, genuinely untyped)
     ) -> None:
         """The callback to detect a selection behavior on the OpenCV window."""
         # if the left mouse button was DOWN, start RECORDING
@@ -58,12 +65,20 @@ def select_patch(input_image: np.ndarray) -> np.ndarray | None:
                 and y_end != -1
             ):
                 visualization = draw_rectangle(
-                    input_image, (x_start, y_start), (x_end, y_end), (255, 0, 0), 2
+                    input_image,
+                    (x_start, y_start),
+                    (x_end, y_end),
+                    (255, 0, 0),
+                    2,
                 )
                 visualization_updated = True
         else:
             visualization = draw_rectangle(
-                input_image, (x_start, y_start), (x_end, y_end), (255, 0, 0), 2
+                input_image,
+                (x_start, y_start),
+                (x_end, y_end),
+                (255, 0, 0),
+                2,
             )
             visualization_updated = False
 
@@ -72,9 +87,9 @@ def select_patch(input_image: np.ndarray) -> np.ndarray | None:
         if key_press == ord("c"):  # cancel
             cv2.destroyWindow(window_name)
             return None
-        elif key_press == ord("q"):  # exit
+        if key_press == ord("q"):  # exit
             cv2.destroyWindow(window_name)
-            exit()
+            sys.exit()
         elif key_press == ord("r"):  # restart
             x_start, y_start, x_end, y_end = -1, -1, -1, -1
             visualization = input_image
@@ -86,6 +101,4 @@ def select_patch(input_image: np.ndarray) -> np.ndarray | None:
             break
 
     # Return patch corners
-    patch_corners = np.sort([[x_start, y_start], [x_end, y_end]], axis=0)
-
-    return patch_corners
+    return np.sort([[x_start, y_start], [x_end, y_end]], axis=0)

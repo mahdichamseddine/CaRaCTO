@@ -15,7 +15,7 @@ def instance_segmentation(
 ) -> np.ndarray:
     model = SamModel.from_pretrained(ModelWeights.SAM_HUGE)
     processor = SamProcessor.from_pretrained(ModelWeights.SAM_HUGE)
-    inputs = processor(  # type: ignore
+    inputs = processor(
         image,
         input_points=input_points,
         input_boxes=input_boxes,
@@ -25,14 +25,14 @@ def instance_segmentation(
     reshaped_input_sizes = inputs["reshaped_input_sizes"]
 
     device = get_torch_device()
-    model = model.to(device)  # type: ignore
+    model = model.to(device)  # type: ignore[invalid-argument-type]
     inputs = inputs.to(device)
 
     with torch.no_grad():
         outputs = model(**inputs)
 
     predicted_masks = outputs.pred_masks.cpu()
-    (masks,) = processor.image_processor.post_process_masks(  # type: ignore
+    (masks,) = processor.image_processor.post_process_masks(
         predicted_masks,
         original_sizes,
         reshaped_input_sizes,

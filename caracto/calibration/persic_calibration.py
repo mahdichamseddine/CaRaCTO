@@ -5,9 +5,10 @@ import numpy.typing as npt
 
 from caracto.calibration.calibration_setup import CalibrationSetup
 
-"""
+CITATION = """
 @article{pervsic2019extrinsic,
-    title     = {Extrinsic 6dof calibration of a radar--lidar--camera system enhanced by radar cross section estimates evaluation},
+    title     = {Extrinsic 6dof calibration of a radar--lidar--camera system
+                  enhanced by radar cross section estimates evaluation},
     author    = {Peršić, Juraj and Marković, Ivan and Petrović, Ivan},
     journal   = {Robotics and Autonomous Systems},
     volume    = {114},
@@ -28,6 +29,7 @@ class PersicSetup(CalibrationSetup):
         subset: int | None = None,
     ) -> None:
         super().__init__(calibration_path, image_dimensions, x0, simulation_std, subset)
+        msg = "Requires Radar Cross Section (RCS) which is not available from TinyRad."
         raise NotImplementedError(
-            "Requires Radar Cross Section (RCS) which is not available from TinyRad."
+            msg,
         )

@@ -11,7 +11,7 @@ from caracto.calibration.residuals import (
     compute_z_residual,
 )
 from caracto.calibration.transformation import transformation_matrix
-from caracto.cli import get_main_parser
+from caracto.cli import get_main_parser, resolve_dataset_path
 from caracto.common import HD_1080, X0
 
 
@@ -44,7 +44,8 @@ class CaRaCTOSetup(CalibrationSetup):
             elif self.range_method == RangeMethod.CAMERA:
                 w = self.__calculate_target_scale(camera_pixel, camera_range)
             else:
-                raise RuntimeError("Undefined value")
+                msg = "Undefined value"
+                raise RuntimeError(msg)
 
             radar_3d, _ = self.calculate_3d_radar(h_inv, camera_pixel, w)
             res_s = compute_sphere_residual(radar_3d, radar_range)
@@ -58,16 +59,18 @@ class CaRaCTOSetup(CalibrationSetup):
         return np.array(residuals)
 
     def __calculate_target_scale(
-        self, pixel_coords: np.ndarray, target_dist: float
+        self,
+        pixel_coords: np.ndarray,
+        target_dist: float,
     ) -> float:
         _, cos_angle = self._calculate_pixel_angles(pixel_coords)
         return cos_angle * target_dist
 
 
-def main():
+def main() -> None:
     parser = get_main_parser()
     args = parser.parse_args()
-    calibration_path = args.dataset_path
+    calibration_path = resolve_dataset_path(args)
 
     frozen_params = None
 
@@ -90,21 +93,18 @@ def main():
     print(ls_result.optimality)
 
     x_result = calibration_setup.check_frozen_params(ls_result.x)
-    h_result, h_result_inv = transformation_matrix(x_result)
+    h_result, _h_result_inv = transformation_matrix(x_result)
     x_init = calibration_setup.check_frozen_params(np.array(X0))
-    h_init, h_init_inv = transformation_matrix(x_init)
+    h_init, _h_init_inv = transformation_matrix(x_init)
     print(h_init)
     print(h_result)
 
-    initial = np.array(
-        [
-            [0, -1, 0, 0],
-            [0, 0, -1, 0],
-            [1, 0, 0, 0],
-            [0, 0, 0, 1],
-        ]
-    )
-    # print(np.allclose(np.round(h_init), initial))
+    initial = np.array([
+        [0, -1, 0, 0],
+        [0, 0, -1, 0],
+        [1, 0, 0, 0],
+        [0, 0, 0, 1],
+    ])
     print(np.allclose(np.round(h_result), initial))
 
 

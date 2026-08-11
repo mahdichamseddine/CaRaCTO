@@ -1,5 +1,11 @@
 # CaRaCTO-3D
 
+![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)
+[![License: CC BY-NC-SA 4.0](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+[![Paper (ICPRAM 2024)](https://img.shields.io/badge/Paper-ICPRAM%202024-blue.svg)](https://www.scitepress.org/Link.aspx?doi=10.5220/0012369700003654)
+[![Paper (SN Comput. Sci. 2025)](https://img.shields.io/badge/Paper-SN%20Comput.%20Sci.%202025-blue.svg)](https://link.springer.com/article/10.1007/s42979-025-04355-w)
+[![Dataset](https://img.shields.io/badge/%F0%9F%A4%97%20Dataset-dfki--av%2FCaRaCTO--3D-yellow.svg)](https://huggingface.co/datasets/dfki-av/CaRaCTO-3D)
+
 This repository contains the official Python implementation of the research papers:
 - [**CaRaCTO**: *Robust Camera-Radar Extrinsic Calibration with Triple Constraint Optimization*, published at ICPRAM 2024 (Best Industrial Paper Award).](https://www.scitepress.org/Link.aspx?doi=10.5220/0012369700003654)
 - [**CaRaCTO-3D**: *From Camera-Radar Calibration to Scene Reconstruction*, published in SN Computer Science 2025.](https://link.springer.com/article/10.1007/s42979-025-04355-w)
@@ -47,8 +53,35 @@ The primary goal of this project is to perform calibration between a camera and 
 
 ### Dataset
 
-You will need to download the appropriate dataset. The path to the dataset is passed as a command-line argument to the scripts (e.g., `--dataset_path /path/to/your/dataset`).
-*Data will be uploaded soon*
+The calibration/reconstruction dataset (`CaRaCTO-3D`: camera, radar, and OptiTrack
+motion-capture measurements of a trihedral corner-reflector target at 40 static positions) is
+published on the Hugging Face Hub: **[dfki-av/CaRaCTO-3D](https://huggingface.co/datasets/dfki-av/CaRaCTO-3D)**.
+
+All scripts accept either a local copy via `--dataset_path /path/to/your/dataset`, or
+`--repo_id`/`--revision` to fetch (and cache) it directly from the Hub — `--repo_id` already
+defaults to `dfki-av/CaRaCTO-3D`, so no flag is required to use the published dataset:
+
+```bash
+python caracto/calibration/caracto_calibration.py  # downloads + caches dfki-av/CaRaCTO-3D automatically
+```
+
+To pre-download a local copy instead (e.g. for offline use or to inspect the raw files):
+
+```bash
+huggingface-cli download dfki-av/CaRaCTO-3D --repo-type dataset --local-dir /path/to/your/dataset
+```
+
+`caracto.dataset.caracto_dataset.CaractoDataset` can also be used directly in your own code:
+
+```python
+from caracto.dataset.caracto_dataset import CaractoDataset
+
+ds = CaractoDataset(repo_id="dfki-av/CaRaCTO-3D")  # downloads + caches automatically
+# or ds = CaractoDataset("/path/to/your/dataset") for a local copy
+```
+
+See the [dataset card](https://huggingface.co/datasets/dfki-av/CaRaCTO-3D) for the full data
+layout, coordinate-frame conventions, and known limitations.
 
 ## Usage
 
@@ -61,10 +94,12 @@ The project is structured as a research repository and is run by executing indiv
 
 *   **Calibration Only:**
     ```bash
-    python caracto/calibration/run_calibration.py --dataset_path /path/to/your/dataset
+    python caracto/calibration/caracto_calibration.py --dataset_path /path/to/your/dataset
     ```
 
-You may need to modify the `main()` functions within these files to suit your specific needs and data.
+`--dataset_path` can be omitted to use the published Hub dataset directly (see the Dataset
+section above). You may need to modify the `main()` functions within these files to suit your
+specific needs and data.
 
 ## Citing this Work
 

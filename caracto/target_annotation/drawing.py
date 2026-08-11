@@ -3,7 +3,10 @@ import numpy as np
 
 
 def draw_annotation(
-    input_image: np.ndarray, annotation: dict, annotate_mode: bool = True
+    input_image: np.ndarray,
+    annotation: dict,
+    *,
+    annotate_mode: bool = True,
 ) -> np.ndarray:
     outer_triangle = annotation["outer_triangle"]
     inner_triangle = annotation["inner_triangle"]
@@ -83,9 +86,9 @@ def draw_rectangle(
 def draw_reprojection(
     input_image: np.ndarray,
     reprojected: np.ndarray,
-    color=(0, 255, 0),
-    marker_size=5,
-):
+    color: tuple[int, int, int] = (0, 255, 0),
+    marker_size: int = 5,
+) -> np.ndarray:
     image_copy = input_image.copy()
     for p in reprojected.squeeze():
         cv2.drawMarker(

@@ -3,15 +3,17 @@ import json
 import numpy as np
 from tqdm import tqdm
 
-from caracto.cli import get_main_parser
+from caracto.cli import get_main_parser, resolve_dataset_path
 from caracto.common import HD_1080, MAX_EVAL_RUNS, OUTPUT_DIR, X0
 from caracto.evaluation.run_evaluation import single_run
+
+_rng = np.random.default_rng()
 
 
 def main() -> None:
     parser = get_main_parser()
     args = parser.parse_args()
-    calibration_path = args.dataset_path
+    calibration_path = resolve_dataset_path(args)
 
     results_dict = {}
 
@@ -28,8 +30,8 @@ def main() -> None:
     # Moderate initialization
     for _ in tqdm(range(MAX_EVAL_RUNS), desc="Moderate initialization"):
         x0_copy = np.array(X0.copy())
-        x0_copy[0:3] += np.random.normal(0, 1, 3)  # ± 1 rad
-        x0_copy[3:6] += np.random.normal(0, 0.1, 3)  # ± 0.1 m
+        x0_copy[0:3] += _rng.normal(0, 1, 3)  # ± 1 rad
+        x0_copy[3:6] += _rng.normal(0, 0.1, 3)  # ± 0.1 m
         errors = single_run(calibration_path, list(x0_copy), HD_1080)
         errors_1_elnatour.append(errors["elnatour"])
         errors_1_caracto_radar.append(errors["caracto_radar"])
@@ -41,8 +43,8 @@ def main() -> None:
     # Bad initialization
     for _ in tqdm(range(MAX_EVAL_RUNS), desc="Bad initialization"):
         x0_copy = np.array(X0.copy())
-        x0_copy[0:3] += np.random.normal(0, 2, 3)  # ± 2 rad
-        x0_copy[3:6] += np.random.normal(0, 0.5, 3)  # ± 0.5 m
+        x0_copy[0:3] += _rng.normal(0, 2, 3)  # ± 2 rad
+        x0_copy[3:6] += _rng.normal(0, 0.5, 3)  # ± 0.5 m
         errors = single_run(calibration_path, list(x0_copy), HD_1080)
         errors_2_elnatour.append(errors["elnatour"])
         errors_2_caracto_radar.append(errors["caracto_radar"])
@@ -60,7 +62,7 @@ def main() -> None:
         errors_2_caracto_camera,
     )
 
-    with open(OUTPUT_DIR / "initialization_evaluation.json", "w") as f:
+    with (OUTPUT_DIR / "initialization_evaluation.json").open("w") as f:
         json.dump(results_dict, f)
 
 

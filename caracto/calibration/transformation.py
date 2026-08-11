@@ -17,29 +17,25 @@ def transformation_matrix(
 
 def rotation_matrix(
     euler_angles: np.ndarray,
+    *,
     closed_form: bool = False,
 ) -> np.ndarray:
     # https://en.wikipedia.org/wiki/Rotation_matrix#General_rotations
     # alfa, beta, and gamma are the rotations around x, y, and z respectively
 
     alpha = euler_angles[0]
-    # alpha = math.remainder(euler_angles[0], math.tau)
     c_a, s_a = np.cos(alpha), np.sin(alpha)
     beta = euler_angles[1]
-    # beta = math.remainder(euler_angles[1], math.tau)
     c_b, s_b = np.cos(beta), np.sin(beta)
     gamma = euler_angles[2]
-    # gamma = math.remainder(euler_angles[2], math.tau)
     c_g, s_g = np.cos(gamma), np.sin(gamma)
 
     if closed_form:  # Closed form rotation matrix
-        r_mat = np.array(
-            [
-                [c_b * c_g, s_a * s_b * c_g - c_a * s_g, c_a * s_b * c_g + s_a * s_g],
-                [c_b * s_g, s_a * s_b * s_g + c_a * c_g, c_a * s_b * s_g - s_a * c_g],
-                [-s_b, s_a * c_b, c_a * c_b],
-            ]
-        )
+        r_mat = np.array([
+            [c_b * c_g, s_a * s_b * c_g - c_a * s_g, c_a * s_b * c_g + s_a * s_g],
+            [c_b * s_g, s_a * s_b * s_g + c_a * c_g, c_a * s_b * s_g - s_a * c_g],
+            [-s_b, s_a * c_b, c_a * c_b],
+        ])
     else:  # Rotation matrix as a result of matrix multiplication
         rx = np.array([[1, 0, 0], [0, c_a, -s_a], [0, s_a, c_a]])
         ry = np.array([[c_b, 0, s_b], [0, 1, 0], [-s_b, 0, c_b]])

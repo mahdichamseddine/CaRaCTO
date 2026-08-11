@@ -6,21 +6,56 @@ build-backend = "setuptools.build_meta"
 name            = "caracto-3d"
 version         = "2.0"
 readme          = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.12,<3.13"
 license         = { file = "LICENSE" }
 
-authors     = [{ name = "Mahdi Chamseddine", email = "mahdi.chamseddine@dfki.de" }]
-maintainers = [{ name = "Mahdi Chamseddine", email = "mahdi.chamseddine@dfki.de" }]
+authors = [{ name = "Mahdi Chamseddine", email = "mahdi.chamseddine@dfki.de" }]
 
 dependencies = [
-    "matplotlib",
-    "numpy",
-    "open3d",
-    "opencv-python",
-    "scipy",
-    "torch",
-    "transformers",
+    "huggingface-hub>=1.27.0",
+    "matplotlib>=3.11.1",
+    "numpy>=2.5.2",
+    "open3d>=0.19.0",
+    "opencv-python>=5.0.0.93",
+    "torch>=2.13.0",
+    "transformers>=5.15.0",
 ]
 
 [tool.setuptools.packages.find]
 include = ["caracto*"]
+
+[tool.ruff]
+exclude      = [".eggs", ".git", ".venv"]
+line-length  = 88                         # same as black
+indent-width = 4
+
+[tool.ruff.format]
+quote-style = "double"
+preview     = true
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = [
+    "D",      # docstrings not required; this project favors self-documenting code
+    "T201",   # print() is the intended output mechanism for these CLI scripts
+    "S101",   # assert is used deliberately for internal invariants, not untrusted input
+    "S603",   # subprocess calls here use hardcoded, non-attacker-controlled arguments
+    "S607",   # ...same, for partial-path executables (git, python)
+    "CPY001", # no per-file copyright headers; the repo LICENSE file already covers this
+    "TD002",  # TODO comments here predate this project's conventions; not retrofitting
+    "TD003",  # ...author/issue-link metadata on existing TODOs
+    "TD004",  # ...colon-after-TODO formatting
+    "TD005",  # ...missing description text
+    "FIX002", # resolving these TODOs means implementing missing features (e.g.
+    # ......... camera_annotation.py's save_annotations()), out of scope here
+    "PLR0913", # these flag legitimate multi-parameter pipeline functions (run_calibration,
+    "PLR0917", # compute_point_3d, get_box_prompt, etc.); bundling into config objects would
+    # .......... touch many call sites across the codebase for marginal readability gain
+    "C901",    # select_patch/select_corners are interactive OpenCV mouse-event-loop functions,
+    "PLR0915", # barely over an arbitrary complexity/statement threshold; splitting them means
+    # .......... redesigning how mutable UI state is threaded between pieces, real risk for
+    # .......... marginal gain in interactive tooling
+]
+
+[tool.ty.environment]
+python = ".venv"

@@ -3,7 +3,7 @@ import numpy as np
 from caracto.calibration.caracto_calibration import RangeMethod
 from caracto.calibration.run_calibration import run_calibration
 from caracto.calibration.transformation import transformation_matrix
-from caracto.cli import get_main_parser
+from caracto.cli import get_main_parser, resolve_dataset_path
 from caracto.common import HD_1080, X0
 from caracto.reconstruction.spherical_cartesian import cartesian_to_range_azimuth
 
@@ -46,14 +46,14 @@ def compute_point_3d(
             elif abs(radar_azimuth - azimuth_2) < abs(radar_azimuth - azimuth_1):
                 points.append(q_2)
         except TypeError:
-            # warn(f"Complex detected: {q_1}, {q_2}. NaN used.")
             points.append(q_1 * np.nan)
 
     return np.array(points)
 
 
 def calculate_mean_error(
-    array_1: np.ndarray, array_2: np.ndarray
+    array_1: np.ndarray,
+    array_2: np.ndarray,
 ) -> tuple[float, float]:
     # Ensure the input arrays have the correct shape
     assert array_1.shape == array_2.shape, "Both arrays must have shape (n, 3)"
@@ -67,10 +67,13 @@ def calculate_mean_error(
 def main() -> None:
     parser = get_main_parser()
     args = parser.parse_args()
-    calibration_path = args.dataset_path
+    calibration_path = resolve_dataset_path(args)
 
     calibration_setup, x_result = run_calibration(
-        calibration_path, HD_1080, X0, range_method=RangeMethod.CAMERA
+        calibration_path,
+        HD_1080,
+        X0,
+        range_method=RangeMethod.CAMERA,
     )
     h_result, h_result_inv = transformation_matrix(x_result)
 
@@ -89,7 +92,7 @@ def main() -> None:
                 camera_pixel.T,
                 radar_range,
                 radar_azimuth,
-            )
+            ),
         )
 
     ground_truth = np.array(ground_truth)

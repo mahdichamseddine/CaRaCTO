@@ -1,5 +1,4 @@
 from pathlib import Path
-import argparse
 
 import numpy as np
 import numpy.typing as npt
@@ -12,13 +11,15 @@ from caracto.calibration.residuals import (
     compute_sphere_residual,
 )
 from caracto.calibration.transformation import transformation_matrix
-from caracto.cli import get_main_parser
+from caracto.cli import get_main_parser, resolve_dataset_path
 from caracto.common import HD_1080, X0
 
-"""
+CITATION = """
 @article{el2015toward,
-    title     = {Toward 3D reconstruction of outdoor scenes using an MMW radar and a monocular vision sensor},
-    author    = {El Natour, Ghina and Ait-Aider, Omar and Rouveure, Raphael and Berry, François and Faure, Patrice},
+    title     = {Toward 3D reconstruction of outdoor scenes using an MMW radar and
+                  a monocular vision sensor},
+    author    = {El Natour, Ghina and Ait-Aider, Omar and Rouveure, Raphael and
+                  Berry, François and Faure, Patrice},
     journal   = {Sensors},
     volume    = {15},
     number    = {10},
@@ -67,20 +68,12 @@ class ElNatourSetup(CalibrationSetup):
         return np.array(residuals)
 
     def __init_distance_matrix(self) -> np.ndarray:
-        optitrack_markers = []
-        for key in self.measurement_keys:
-            optitrack_markers.append(self.optitrack_data[key])
-
+        optitrack_markers = [self.optitrack_data[key] for key in self.measurement_keys]
         optitrack_markers = np.array(optitrack_markers)
-        dist = squareform(pdist(optitrack_markers))
-
-        return dist
+        return squareform(pdist(optitrack_markers))
 
     def __init_cosines_matrix(self) -> np.ndarray:
-        target_pixels = []
-        for key in self.measurement_keys:
-            target_pixels.append(self.camera_data[key][2])
-
+        target_pixels = [self.camera_data[key][2] for key in self.measurement_keys]
         cosines = np.zeros((len(self.measurement_keys), len(self.measurement_keys)))
         for i in range(len(self.measurement_keys)):
             for j in range(len(self.measurement_keys)):
@@ -100,10 +93,10 @@ class ElNatourSetup(CalibrationSetup):
         w = []
         for key in self.measurement_keys:
             radar_range = 0
-            for i in self.radar_data[key][1]:
+            for i in self.radar_data[key]:
                 radar_range += i["Range"]
 
-            radar_range /= len(self.radar_data[key][1])
+            radar_range /= len(self.radar_data[key])
 
             _, cos_angle = self._calculate_pixel_angles(self.camera_data[key][2])
             w.append(cos_angle * radar_range)
@@ -124,7 +117,6 @@ class ElNatourSetup(CalibrationSetup):
         return np.array(residuals)
 
     def __init_scale_array(self) -> np.ndarray:
-        # w0 = np.zeros((len(self.measurement_keys), ))
         w0 = self.__radar_scale_array()
         res = least_squares(self.__al_kashi_method, w0, method="lm", verbose=0)
         return res.x
@@ -135,10 +127,10 @@ class ElNatourSetup(CalibrationSetup):
         return cosine
 
 
-def main():
+def main() -> None:
     parser = get_main_parser()
     args = parser.parse_args()
-    calibration_path = args.dataset_path
+    calibration_path = resolve_dataset_path(args)
 
     frozen_params = None
 
@@ -155,24 +147,21 @@ def main():
     print(ls_result.optimality)
 
     x_result = calibration_setup.check_frozen_params(ls_result.x)
-    h_result, h_result_inv = transformation_matrix(x_result)
+    h_result, _h_result_inv = transformation_matrix(x_result)
     x_init = calibration_setup.check_frozen_params(np.array(X0))
-    h_init, h_init_inv = transformation_matrix(x_init)
+    h_init, _h_init_inv = transformation_matrix(x_init)
     print(h_init)
     print(h_result)
 
-    initial = np.array(
-        [
-            [0, -1, 0, 0],
-            [0, 0, -1, 0],
-            [1, 0, 0, 0],
-            [0, 0, 0, 1],
-        ]
-    )
+    initial = np.array([
+        [0, -1, 0, 0],
+        [0, 0, -1, 0],
+        [1, 0, 0, 0],
+        [0, 0, 0, 1],
+    ])
     print(np.allclose(np.round(h_init), initial))
     print(np.allclose(np.round(h_result), initial))
 
 
 if __name__ == "__main__":
     main()
-

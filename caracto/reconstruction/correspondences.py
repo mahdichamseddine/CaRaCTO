@@ -6,7 +6,7 @@ import open3d as o3d
 from caracto.calibration.caracto_calibration import RangeMethod
 from caracto.calibration.run_calibration import run_calibration
 from caracto.calibration.transformation import transformation_matrix
-from caracto.cli import get_main_parser
+from caracto.cli import get_main_parser, resolve_dataset_path
 from caracto.common import HD_1080, X0
 from caracto.dataset.data_loader import load_sample_data
 from caracto.ml.depth_anything import depth_estimation
@@ -26,10 +26,14 @@ def compute_prompt_limits(
     elevation_limit: float,
 ) -> np.ndarray:
     lower_limit = spherical_to_cartesian(
-        radar_range, radar_azimuth - azimuth_limit, -elevation_limit
+        radar_range,
+        radar_azimuth - azimuth_limit,
+        -elevation_limit,
     )
     upper_limit = spherical_to_cartesian(
-        radar_range, radar_azimuth + azimuth_limit, elevation_limit
+        radar_range,
+        radar_azimuth + azimuth_limit,
+        elevation_limit,
     )
     prompt_limits = [lower_limit, upper_limit]
 
@@ -85,21 +89,19 @@ def get_box_prompt(
         elevation_limits_rad,
     )
 
-    prompt_limits_2d = project_3d_to_2d(
+    return project_3d_to_2d(
         prompt_limits_3d,
         image_shape,
         intrinsic_matrix,
         extrinsic_matrix,
     )
 
-    return prompt_limits_2d
-
 
 # def get_point_prompt(prompt_limits: np.ndarray) -> np.ndarray:
 #     pass
 
 
-def merge_segmentation(masks_1: np.ndarray, masks_2) -> np.ndarray:
+def merge_segmentation(masks_1: np.ndarray, _masks_2: np.ndarray | None) -> np.ndarray:
     # TODO Place holder assuming best mask is the first in the depth
     return masks_1[0]
 
@@ -107,11 +109,13 @@ def merge_segmentation(masks_1: np.ndarray, masks_2) -> np.ndarray:
 def compute_correspondences(
     input_image: np.ndarray,
     area_prompt: np.ndarray,
+    *,
     debug: bool = False,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     # Depth estimation using Depth Anything V2
     normalized_depth, unscaled_disparity = depth_estimation(
-        cv2.cvtColor(input_image, cv2.COLOR_BGR2RGB), 0
+        cv2.cvtColor(input_image, cv2.COLOR_BGR2RGB),
+        0,
     )
 
     visualize("Depth - Gray", normalized_depth, color=False, debug=debug)
@@ -126,7 +130,10 @@ def compute_correspondences(
     ).transpose((1, 2, 0))
     colored_depth = cv2.applyColorMap(colored_depth, cv2.COLORMAP_PARULA)
     colored_depth_prompt = draw_rectangle(
-        colored_depth, area_prompt[0], area_prompt[1], (255, 255, 255)
+        colored_depth,
+        area_prompt[0],
+        area_prompt[1],
+        (255, 255, 255),
     )
 
     visualize("Depth - Colored", colored_depth_prompt, color=True, debug=debug)
@@ -135,7 +142,7 @@ def compute_correspondences(
     depth_segmentation_masks = instance_segmentation(
         colored_depth,
         input_points=None,
-        input_boxes=[[area_prompt.flatten().tolist()]],  # type: ignore
+        input_boxes=[[area_prompt.flatten().tolist()]],
     )
     for mask in depth_segmentation_masks:
         # Show the first mask only
@@ -143,19 +150,6 @@ def compute_correspondences(
         break
 
     # TODO add image segmentation using points
-    # masks = instance_segmentation(
-    #     cv2.cvtColor(
-    #         input_image[
-    #             prompt_limits_2d[0, 1] : prompt_limits_2d[1, 1],
-    #             prompt_limits_2d[0, 0] : prompt_limits_2d[1, 0],
-    #         ],
-    #         cv2.COLOR_BGR2RGB,
-    #     ),
-    #     input_points,
-    #     input_boxes,
-    # )
-    # for mask in masks:
-    #     visualize("Depth - Masked", mask, color=False, debug=DEBUG)
 
     target_mask = merge_segmentation(depth_segmentation_masks, None)
     x, y = np.nonzero(target_mask)
@@ -165,7 +159,7 @@ def compute_correspondences(
     return unscaled_disparity, target_pixels, target_mean
 
 
-def visualize(name: str, data: np.ndarray, color: bool, debug: bool = True):
+def visualize(name: str, data: np.ndarray, *, color: bool, debug: bool = True) -> None:
     if not debug:
         return
 
@@ -181,29 +175,23 @@ def visualize(name: str, data: np.ndarray, color: bool, debug: bool = True):
 def main() -> None:
     parser = get_main_parser()
     args = parser.parse_args()
-    calibration_path = args.dataset_path
+    calibration_path = resolve_dataset_path(args)
 
     calibration_setup, x_result = run_calibration(
-        calibration_path, HD_1080, X0, range_method=RangeMethod.CAMERA
+        calibration_path,
+        HD_1080,
+        X0,
+        range_method=RangeMethod.CAMERA,
     )
     h_result, h_result_inv = transformation_matrix(x_result)
 
-    # fmt: off
-    # The following measurements achieved "good" correspondences
-    # Used for faster debugging
-    valid_measurements = ["Meas_03", "Meas_04", "Meas_05", "Meas_07", "Meas_09",
-                          "Meas_10", "Meas_11", "Meas_14", "Meas_15", "Meas_18",
-                          "Meas_19", "Meas_20", "Meas_21", "Meas_22", "Meas_23",
-                          "Meas_24", "Meas_25", "Meas_26", "Meas_27", "Meas_28",
-                          "Meas_33", "Meas_34", "Meas_35", "Meas_36", "Meas_37",
-                          "Meas_38", "Meas_39", "Meas_40"]
-    # fmt: on
-
     for key in calibration_setup.measurement_keys:
-        if key not in valid_measurements:
+        if key not in calibration_setup.valid_for_reconstruction_keys:
             continue
         radar_range, radar_azimuth, input_image = load_sample_data(
-            calibration_path, calibration_setup, key
+            calibration_path,
+            calibration_setup,
+            key,
         )
 
         area_prompt = get_box_prompt(
@@ -216,7 +204,11 @@ def main() -> None:
             elevation_range_deg=15,  # elevation error range
         )
 
-        _, target_pixels, _ = compute_correspondences(input_image, area_prompt, True)
+        _, target_pixels, _ = compute_correspondences(
+            input_image,
+            area_prompt,
+            debug=True,
+        )
 
         points_3d = compute_point_3d(
             calibration_setup.camera_matrix_inv,
@@ -227,7 +219,6 @@ def main() -> None:
             radar_azimuth,
         )
         points_mean = np.mean(points_3d, axis=0)
-        # points_std = np.std(points_3d, axis=0)
         estimated_range, estimated_azimuth = cartesian_to_range_azimuth(points_mean)
         gt_point = np.array(calibration_setup.optitrack_data[key])
         gt_range, gt_azimuth = cartesian_to_range_azimuth(gt_point)
@@ -236,25 +227,26 @@ def main() -> None:
         print(key)
         print(
             f"range:\noptitrack: {gt_range:.2f} m\n"
-            + f"radar: {radar_range:.2f} m, "
-            + f"{(abs((gt_range - radar_range) / gt_range)) * 100:.2f}%\n"
-            + f"estimated: {estimated_range:.2f} m, "
-            + f"{(abs((gt_range - estimated_range) / gt_range)) * 100:.2f}%\n"
+            f"radar: {radar_range:.2f} m, "
+            f"{(abs((gt_range - radar_range) / gt_range)) * 100:.2f}%\n"
+            f"estimated: {estimated_range:.2f} m, "
+            f"{(abs((gt_range - estimated_range) / gt_range)) * 100:.2f}%\n",
         )
         print(
             f"azimuth:\noptitrack: {gt_azimuth:.2f} rad\n"
-            + f"radar: {radar_azimuth:.2f} rad, "
-            + f"{(abs((gt_azimuth - radar_azimuth) / gt_azimuth)) * 100:.2f}%\n"
-            + f"estimated: {estimated_azimuth:.2f} rad, "
-            + f"{(abs((gt_azimuth - estimated_azimuth) / gt_azimuth)) * 100:.2f}%\n"
+            f"radar: {radar_azimuth:.2f} rad, "
+            f"{(abs((gt_azimuth - radar_azimuth) / gt_azimuth)) * 100:.2f}%\n"
+            f"estimated: {estimated_azimuth:.2f} rad, "
+            f"{(abs((gt_azimuth - estimated_azimuth) / gt_azimuth)) * 100:.2f}%\n",
         )
         radar_error = np.linalg.norm(
-            gt_point - spherical_to_cartesian(radar_range, radar_azimuth, 0)
+            gt_point - spherical_to_cartesian(radar_range, radar_azimuth, 0),
         )
         estimated_error = np.linalg.norm(gt_point - points_mean)
 
         print(
-            f"3D error:\nradar: {radar_error:.2f} m\nestimated: {estimated_error:.2f} m\n"
+            f"3D error:\nradar: {radar_error:.2f} m\n"
+            f"estimated: {estimated_error:.2f} m\n",
         )
 
         # Visualize in 3D
@@ -268,11 +260,12 @@ def main() -> None:
         gt_pcd.points = o3d.utility.Vector3dVector([gt_point])
         gt_pcd.colors = o3d.utility.Vector3dVector([[1, 0, 0]])
         mesh = o3d.geometry.TriangleMesh.create_coordinate_frame(
-            size=1, origin=[0, 0, 0]
+            size=1,
+            origin=[0, 0, 0],
         )
 
-        o3d.visualization.draw_geometries(  # type: ignore
-            [target_pcd, gt_pcd, estimated_pcd, mesh]
+        o3d.visualization.draw_geometries(  # type: ignore[possibly-missing-submodule]
+            [target_pcd, gt_pcd, estimated_pcd, mesh],
         )
 
 

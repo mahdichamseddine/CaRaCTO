@@ -1,3 +1,4 @@
+import sys
 from typing import Any
 
 import cv2
@@ -6,6 +7,8 @@ from scipy.optimize import linear_sum_assignment as munkres
 
 from caracto.target_annotation.drawing import draw_annotation, draw_points
 
+NUM_TRIANGLE_CORNERS = 3
+
 
 def select_corners(
     input_image: np.ndarray,
@@ -13,15 +16,17 @@ def select_corners(
     screen_height: int,
 ) -> dict:
     def select_corners_callback(
-        event: int, x: int, y: int, flags: int, param: Any | None
+        event: int,
+        x: int,
+        y: int,
+        _flags: int,
+        _param: Any | None,  # noqa: ANN401 (OpenCV callback param, genuinely untyped)
     ) -> None:
         nonlocal p_x, p_y
 
         if event == cv2.EVENT_LBUTTONDOWN:
             p_x, p_y = x, y
-        elif event == cv2.EVENT_MOUSEMOVE:
-            pass
-        elif event == cv2.EVENT_LBUTTONUP:
+        elif event in (cv2.EVENT_MOUSEMOVE, cv2.EVENT_LBUTTONUP):
             pass
 
     num_corners = 6  # Two triangles containing each other
@@ -55,7 +60,10 @@ def select_corners(
         if selection_updated:
             if len(selected_points) < num_corners:
                 visualization = draw_points(
-                    resized_patch, np.array(selected_points), (255, 255, 255), 2
+                    resized_patch,
+                    np.array(selected_points),
+                    (255, 255, 255),
+                    2,
                 )
             else:
                 annotation = process_annotation(selected_points)
@@ -66,11 +74,10 @@ def select_corners(
         key_press = cv2.waitKey(1) & 0xFF
         if key_press == ord("c"):  # cancel
             cv2.destroyWindow(window_name)
-            exit()  # TODO handle cancel properly
-            # return {}
+            sys.exit()  # TODO handle cancel properly
         elif key_press == ord("q"):  # exit
             cv2.destroyWindow(window_name)
-            exit()
+            sys.exit()
         elif key_press == ord("r"):  # restart
             p_x, p_y = -1, -1
             annotation = None
@@ -82,15 +89,14 @@ def select_corners(
                 cv2.destroyWindow(window_name)
                 break
 
-    annotation = rescale_annotation(annotation, resize_factor, patch_corners)
-    return annotation
+    return rescale_annotation(annotation, resize_factor, patch_corners)
 
 
 def update_selection(
     points_list: list[tuple[int, int]],
     p_x: int,
     p_y: int,
-):
+) -> list[tuple[int, int]]:
     # Find closest point in the lost
     new_point = np.array((p_x, p_y))
     squared_distance = np.sum((np.array(points_list) - new_point) ** 2, axis=1)
@@ -107,9 +113,10 @@ def sort_points_ccw(image_points: np.ndarray) -> np.ndarray:
     # Calculate the centroid of the points
     centroid = np.mean(image_points, axis=0)
 
-    # Compute the angle of each point with respect to the centroid, inverting the y-coordinates
+    # Compute the angle of each point with respect to the centroid, inverting y
     angles = np.arctan2(
-        -(image_points[:, 1] - centroid[1]), image_points[:, 0] - centroid[0]
+        -(image_points[:, 1] - centroid[1]),
+        image_points[:, 0] - centroid[0],
     )
 
     # return sorted points by angle in counterclockwise order
@@ -125,18 +132,17 @@ def extract_triangles(
     outer_triangle = []
     inner_triangle = []
     for point in points_list:
-        if len(outer_triangle) < 3 and (
+        if len(outer_triangle) < NUM_TRIANGLE_CORNERS and (
             point[0] in (min_x, max_x) or point[1] in (min_y, max_y)
         ):
             outer_triangle.append(point)
-        elif len(inner_triangle) < 3:
+        elif len(inner_triangle) < NUM_TRIANGLE_CORNERS:
             inner_triangle.append(point)
         else:  # corner case to preven the interface from crashing
             outer_triangle.append(point)
 
-    assert len(outer_triangle) == 3 and len(inner_triangle) == 3, (
-        "Triangles must have 3 corners!"
-    )
+    assert len(outer_triangle) == NUM_TRIANGLE_CORNERS, "outer needs 3 corners!"
+    assert len(inner_triangle) == NUM_TRIANGLE_CORNERS, "inner needs 3 corners!"
 
     outer_triangle = sort_points_ccw(np.array(outer_triangle))
     inner_triangle = np.array(inner_triangle)
@@ -154,19 +160,19 @@ def extract_triangles(
 
 
 def calculate_center(
-    outer_triangle: np.ndarray, inner_triangle: np.ndarray
+    outer_triangle: np.ndarray,
+    inner_triangle: np.ndarray,
 ) -> np.ndarray:
-    intersections = []
-    for i in range(3):
-        for j in range(i + 1, 3):
-            intersections.append(
-                line_intersection(
-                    outer_triangle[i],
-                    inner_triangle[i],
-                    outer_triangle[j],
-                    inner_triangle[j],
-                )
-            )
+    intersections = [
+        line_intersection(
+            outer_triangle[i],
+            inner_triangle[i],
+            outer_triangle[j],
+            inner_triangle[j],
+        )
+        for i in range(NUM_TRIANGLE_CORNERS)
+        for j in range(i + 1, NUM_TRIANGLE_CORNERS)
+    ]
 
     return np.mean(intersections, axis=0, dtype=int)[np.newaxis, :]
 
@@ -176,31 +182,38 @@ def process_annotation(marked_points: list[tuple[int, int]]) -> dict:
     target_center = calculate_center(outer_triangle, inner_triangle)
     corner_edges = get_corner_edges(outer_triangle, inner_triangle)
 
-    annotation = {
+    return {
         "outer_triangle": outer_triangle,
         "inner_triangle": inner_triangle,
         "target_center": target_center,
         "corner_edges": corner_edges,
     }
 
-    return annotation
 
-
-def get_corner_edges(outer_triangle: np.ndarray, inner_triangle: np.ndarray):
+def get_corner_edges(
+    outer_triangle: np.ndarray,
+    inner_triangle: np.ndarray,
+) -> np.ndarray:
     edges = []
     for i, outer_corner in enumerate(outer_triangle):
         opposite_edge = np.delete(inner_triangle, i, axis=0)
         inner_corner = inner_triangle[i, :]
         intersection = line_intersection(
-            outer_corner, inner_corner, opposite_edge[0, :], opposite_edge[1, :]
+            outer_corner,
+            inner_corner,
+            opposite_edge[0, :],
+            opposite_edge[1, :],
         )
-        edges.append([outer_triangle[i], intersection])
+        edges.append([outer_corner, intersection])
 
     return np.array(edges)
 
 
 def line_intersection(
-    a1: np.ndarray, a2: np.ndarray, b1: np.ndarray, b2: np.ndarray
+    a1: np.ndarray,
+    a2: np.ndarray,
+    b1: np.ndarray,
+    b2: np.ndarray,
 ) -> np.ndarray:
     """
     Returns the point of intersection of the lines passing through a2,a1 and b2,b1.
@@ -220,7 +233,9 @@ def line_intersection(
 
 
 def rescale_annotation(
-    annotation: dict, resize_factor: int, area_corners: np.ndarray
+    annotation: dict,
+    resize_factor: int,
+    area_corners: np.ndarray,
 ) -> dict:
     outer_triangle = annotation["outer_triangle"]
     inner_triangle = annotation["inner_triangle"]
@@ -230,22 +245,22 @@ def rescale_annotation(
     outer_triangle = rescale_points(outer_triangle, resize_factor, area_corners)
     inner_triangle = rescale_points(inner_triangle, resize_factor, area_corners)
     target_center = rescale_points(target_center, resize_factor, area_corners)
-    rescaled_edges = []
-    for edge in corner_edges:
-        edge = rescale_points(edge, resize_factor, area_corners)
-        rescaled_edges.append(edge)
+    rescaled_edges = [
+        rescale_points(edge, resize_factor, area_corners) for edge in corner_edges
+    ]
 
-    rescaled_annotation = {
+    return {
         "outer_triangle": outer_triangle,
         "inner_triangle": inner_triangle,
         "target_center": target_center,
         "corner_edges": rescaled_edges,
     }
-    return rescaled_annotation
 
 
 def rescale_points(
-    points: np.ndarray, resize_factor, area_corners: np.ndarray
+    points: np.ndarray,
+    resize_factor: int,
+    area_corners: np.ndarray,
 ) -> np.ndarray:
     scaled_points = points / resize_factor + area_corners[0, :]
     return np.round(scaled_points).astype(int)

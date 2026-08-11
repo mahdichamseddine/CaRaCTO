@@ -2,7 +2,8 @@ import cv2
 import numpy as np
 
 
-def enhance_image(input_image: np.ndarray, area_corners: np.ndarray):  # TODO
+# TODO
+def enhance_image(input_image: np.ndarray, area_corners: np.ndarray) -> np.ndarray:
     area_mask = np.ones_like(input_image)
     cv2.rectangle(
         img=area_mask,
@@ -13,14 +14,6 @@ def enhance_image(input_image: np.ndarray, area_corners: np.ndarray):  # TODO
     )
 
     output_image = cv2.bilateralFilter(input_image, 10, 15, 30)
-    """
-    lab = cv2.cvtColor(output_image, cv2.COLOR_BGR2LAB)
-    l_channel, a, b = cv2.split(lab)
-    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
-    cl = clahe.apply(l_channel)
-    limg = cv2.merge((cl, a, b))
-    output_image = cv2.cvtColor(limg, cv2.COLOR_LAB2BGR)
-    """
     alpha = 1.0  # Simple contrast control
     beta = 0  # Simple brightness control
     gamma = 1.5
@@ -29,5 +22,4 @@ def enhance_image(input_image: np.ndarray, area_corners: np.ndarray):  # TODO
     for i in range(256):
         look_up_table[0, i] = np.clip(pow(i / 255.0, gamma) * 255.0, 0, 255)
     output_image = cv2.LUT(output_image, look_up_table)
-    output_image = cv2.bitwise_and(output_image, area_mask)
-    return output_image
+    return cv2.bitwise_and(output_image, area_mask)
