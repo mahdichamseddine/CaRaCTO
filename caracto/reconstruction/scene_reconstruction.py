@@ -120,7 +120,7 @@ def compute_scene_3d(
 
 
 def find_planes(
-    input_pcd: o3d.geometry.PointCloud,  # ty: ignore[unresolved-attribute]
+    input_pcd: o3d.geometry.PointCloud,
     max_plane_idx: int,
     pt_to_plane_dist: float = 0.1,
     *,
@@ -164,8 +164,8 @@ def optimize_scene_disparity(
             target_range,
             intrinsics_matrix,
         )
-        pcd = o3d.geometry.PointCloud()  # ty: ignore[unresolved-attribute]
-        pcd.points = o3d.utility.Vector3dVector(scene_points)  # ty: ignore[unresolved-attribute]
+        pcd = o3d.geometry.PointCloud()
+        pcd.points = o3d.utility.Vector3dVector(scene_points)
         plane_models, _ = find_planes(pcd, max_plane_idx=4)
         cos_45_deg = (2**0.5) / 2
         loss = 0
@@ -207,7 +207,7 @@ def reconstruct_position_scene(
     h_result: np.ndarray,
     h_result_inv: np.ndarray,
     key: str,
-) -> tuple[o3d.geometry.PointCloud, o3d.geometry.TriangleMesh]:  # ty: ignore[unresolved-attribute]
+) -> tuple[o3d.geometry.PointCloud, o3d.geometry.TriangleMesh]:
     """Reconstruct one position's filtered, normal-oriented scene point cloud."""
     radar_range, radar_azimuth, input_image = load_sample_data(
         calibration_path,
@@ -276,10 +276,10 @@ def reconstruct_position_scene(
     # Original point cloud
     scene_colors = scene_colors[scene_points[:, 0] < MAX_SCENE_RANGE_M, :]
     scene_points = scene_points[scene_points[:, 0] < MAX_SCENE_RANGE_M, :]
-    scene_pcd = o3d.geometry.PointCloud()  # ty: ignore[unresolved-attribute]
-    scene_pcd.points = o3d.utility.Vector3dVector(scene_points)  # ty: ignore[unresolved-attribute]
-    scene_pcd.colors = o3d.utility.Vector3dVector(scene_colors / 255)  # ty: ignore[unresolved-attribute]
-    mesh = o3d.geometry.TriangleMesh.create_coordinate_frame(  # ty: ignore[unresolved-attribute]
+    scene_pcd = o3d.geometry.PointCloud()
+    scene_pcd.points = o3d.utility.Vector3dVector(scene_points)
+    scene_pcd.colors = o3d.utility.Vector3dVector(scene_colors / 255)
+    mesh = o3d.geometry.TriangleMesh.create_coordinate_frame(
         size=0.25,
         origin=[0, 0, 0],
     )
@@ -295,7 +295,7 @@ def reconstruct_position_scene(
     return scene_pcd, mesh
 
 
-def print_room_statistics(scene_pcd: o3d.geometry.PointCloud) -> None:  # ty: ignore[unresolved-attribute]
+def print_room_statistics(scene_pcd: o3d.geometry.PointCloud) -> None:
     """Print the reconstructed scene's estimated room width and height."""
     room_width = np.max(np.asarray(scene_pcd.points)[:, 1]) - np.min(
         np.asarray(scene_pcd.points)[:, 1],

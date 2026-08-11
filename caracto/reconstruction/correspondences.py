@@ -259,16 +259,16 @@ def main() -> None:
         )
 
         # Visualize in 3D
-        target_pcd = o3d.geometry.PointCloud()  # ty: ignore[unresolved-attribute]
-        target_pcd.points = o3d.utility.Vector3dVector(points_3d)  # ty: ignore[unresolved-attribute]
+        target_pcd = o3d.geometry.PointCloud()
+        target_pcd.points = o3d.utility.Vector3dVector(points_3d)
         # target_pcd.colors
-        estimated_pcd = o3d.geometry.PointCloud()  # ty: ignore[unresolved-attribute]
-        estimated_pcd.points = o3d.utility.Vector3dVector([points_mean])  # ty: ignore[unresolved-attribute]
-        estimated_pcd.colors = o3d.utility.Vector3dVector([[1, 1, 0]])  # ty: ignore[unresolved-attribute]
-        gt_pcd = o3d.geometry.PointCloud()  # ty: ignore[unresolved-attribute]
-        gt_pcd.points = o3d.utility.Vector3dVector([gt_point])  # ty: ignore[unresolved-attribute]
-        gt_pcd.colors = o3d.utility.Vector3dVector([[1, 0, 0]])  # ty: ignore[unresolved-attribute]
-        mesh = o3d.geometry.TriangleMesh.create_coordinate_frame(  # ty: ignore[unresolved-attribute]
+        estimated_pcd = o3d.geometry.PointCloud()
+        estimated_pcd.points = o3d.utility.Vector3dVector([points_mean])
+        estimated_pcd.colors = o3d.utility.Vector3dVector([[1, 1, 0]])
+        gt_pcd = o3d.geometry.PointCloud()
+        gt_pcd.points = o3d.utility.Vector3dVector([gt_point])
+        gt_pcd.colors = o3d.utility.Vector3dVector([[1, 0, 0]])
+        mesh = o3d.geometry.TriangleMesh.create_coordinate_frame(
             size=1,
             origin=[0, 0, 0],
         )
