@@ -1,3 +1,5 @@
+"""El Natour et al. calibration baseline (pairwise-distance / Al-Kashi residuals)."""
+
 from pathlib import Path
 
 import numpy as np
@@ -31,6 +33,8 @@ CITATION = """
 
 
 class ElNatourSetup(CalibrationSetup):
+    """El Natour et al.'s baseline: pairwise-distance and Al-Kashi-law residuals."""
+
     def __init__(
         self,
         calibration_path: Path,
@@ -39,6 +43,7 @@ class ElNatourSetup(CalibrationSetup):
         simulation_std: tuple[float, float, float] | None = None,  # r, theta, px
         subset: int | None = None,
     ) -> None:
+        """Load the dataset and precompute the fixed distance/cosine/scale matrices."""
         super().__init__(calibration_path, image_dimensions, x0, simulation_std, subset)
 
         self.distance_matrix = self.__init_distance_matrix()
@@ -46,6 +51,7 @@ class ElNatourSetup(CalibrationSetup):
         self.w = self.__init_scale_array()
 
     def compute_residuals(self, x: np.ndarray) -> np.ndarray:
+        """Stack sphere/plane residuals for every measurement key."""
         # check if there are any frozen parameters and add them to the parameter list
         # if there are no frozen parameters x and calibration_params are the same
         calibration_params = self._get_calibration_params(x)
@@ -128,6 +134,7 @@ class ElNatourSetup(CalibrationSetup):
 
 
 def main() -> None:
+    """Run the El Natour et al. baseline and print the resulting transform."""
     parser = get_main_parser()
     args = parser.parse_args()
     calibration_path = resolve_dataset_path(args)

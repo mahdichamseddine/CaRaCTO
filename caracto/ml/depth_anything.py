@@ -1,3 +1,5 @@
+"""Depth estimation via the Depth Anything V2 model."""
+
 import cv2
 import numpy as np
 import torch
@@ -12,6 +14,7 @@ def depth_estimation(
     image: np.ndarray,
     border_size: int = 0,
 ) -> tuple[np.ndarray, np.ndarray]:
+    """Return (depth_map, disparity) for image, optionally padded by border_size."""
     model = AutoModelForDepthEstimation.from_pretrained(ModelWeights.DAV2_LARGE)
     image_processor = AutoImageProcessor.from_pretrained(ModelWeights.DAV2_LARGE)
     if border_size > 0:

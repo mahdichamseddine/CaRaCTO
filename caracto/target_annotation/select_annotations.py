@@ -1,3 +1,5 @@
+"""Interactive selection of the 6 corner-reflector image points, plus geometry math."""
+
 import sys
 from typing import Any
 
@@ -15,6 +17,8 @@ def select_corners(
     patch_corners: np.ndarray,
     screen_height: int,
 ) -> dict:
+    """Interactively select the target's 6 outer/inner triangle corners."""
+
     def select_corners_callback(
         event: int,
         x: int,
@@ -97,6 +101,7 @@ def update_selection(
     p_x: int,
     p_y: int,
 ) -> list[tuple[int, int]]:
+    """Replace the closest point in points_list to (p_x, p_y) with (p_x, p_y)."""
     # Find closest point in the lost
     new_point = np.array((p_x, p_y))
     squared_distance = np.sum((np.array(points_list) - new_point) ** 2, axis=1)
@@ -110,6 +115,7 @@ def update_selection(
 
 
 def sort_points_ccw(image_points: np.ndarray) -> np.ndarray:
+    """Sort image_points counterclockwise around their centroid."""
     # Calculate the centroid of the points
     centroid = np.mean(image_points, axis=0)
 
@@ -126,6 +132,7 @@ def sort_points_ccw(image_points: np.ndarray) -> np.ndarray:
 def extract_triangles(
     points_list: list[tuple[int, int]],
 ) -> tuple[np.ndarray, np.ndarray]:
+    """Split the 6 selected points into an index-aligned outer/inner triangle pair."""
     min_x, min_y = np.min(points_list, axis=0)
     max_x, max_y = np.max(points_list, axis=0)
 
@@ -163,6 +170,7 @@ def calculate_center(
     outer_triangle: np.ndarray,
     inner_triangle: np.ndarray,
 ) -> np.ndarray:
+    """Return the target center: the mean of the 3 outer/inner edge intersections."""
     intersections = [
         line_intersection(
             outer_triangle[i],
@@ -178,6 +186,7 @@ def calculate_center(
 
 
 def process_annotation(marked_points: list[tuple[int, int]]) -> dict:
+    """Build the full annotation dict (triangles, center, edges) from marked_points."""
     outer_triangle, inner_triangle = extract_triangles(marked_points)
     target_center = calculate_center(outer_triangle, inner_triangle)
     corner_edges = get_corner_edges(outer_triangle, inner_triangle)
@@ -194,6 +203,7 @@ def get_corner_edges(
     outer_triangle: np.ndarray,
     inner_triangle: np.ndarray,
 ) -> np.ndarray:
+    """Return each outer corner paired with its opposite inner-edge intersection."""
     edges = []
     for i, outer_corner in enumerate(outer_triangle):
         opposite_edge = np.delete(inner_triangle, i, axis=0)
@@ -215,12 +225,14 @@ def line_intersection(
     b1: np.ndarray,
     b2: np.ndarray,
 ) -> np.ndarray:
-    """
-    Returns the point of intersection of the lines passing through a2,a1 and b2,b1.
-    a1: [x, y] a point on the first line
-    a2: [x, y] another point on the first line
-    b1: [x, y] a point on the second line
-    b2: [x, y] another point on the second line
+    """Return the intersection point of line a1-a2 and line b1-b2.
+
+    Args:
+        a1: a point on the first line.
+        a2: another point on the first line.
+        b1: a point on the second line.
+        b2: another point on the second line.
+
     """
     s = np.vstack([a1, a2, b1, b2])  # s for stacked
     h = np.hstack((s, np.ones((4, 1))))  # h for homogeneous
@@ -237,6 +249,7 @@ def rescale_annotation(
     resize_factor: int,
     area_corners: np.ndarray,
 ) -> dict:
+    """Rescale annotation's points back from the resized patch to the full image."""
     outer_triangle = annotation["outer_triangle"]
     inner_triangle = annotation["inner_triangle"]
     corner_edges = annotation["corner_edges"]
@@ -262,5 +275,6 @@ def rescale_points(
     resize_factor: int,
     area_corners: np.ndarray,
 ) -> np.ndarray:
+    """Rescale points from the resized patch back to the full image's coordinates."""
     scaled_points = points / resize_factor + area_corners[0, :]
     return np.round(scaled_points).astype(int)

@@ -1,3 +1,5 @@
+"""Back-projects a target's pixel + radar range/azimuth into a 3D point."""
+
 import numpy as np
 
 from caracto.calibration.caracto_calibration import RangeMethod
@@ -16,6 +18,7 @@ def compute_point_3d(
     radar_range: float,
     radar_azimuth: float,  # unused
 ) -> np.ndarray:
+    """Back-project pixels onto the radar_range sphere and disambiguate by azimuth."""
     js = camera_matrix_inv @ np.vstack((pixels, np.ones((1, pixels.shape[1]))))
 
     points = []
@@ -55,6 +58,7 @@ def calculate_mean_error(
     array_1: np.ndarray,
     array_2: np.ndarray,
 ) -> tuple[float, float]:
+    """Return the mean and std of per-row distances between array_1 and array_2."""
     # Ensure the input arrays have the correct shape
     assert array_1.shape == array_2.shape, "Both arrays must have shape (n, 3)"
 
@@ -65,6 +69,7 @@ def calculate_mean_error(
 
 
 def main() -> None:
+    """Run calibration, reconstruct each target's 3D point, and print errors."""
     parser = get_main_parser()
     args = parser.parse_args()
     calibration_path = resolve_dataset_path(args)

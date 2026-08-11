@@ -1,3 +1,5 @@
+"""Evaluates calibration accuracy as the number of measurement positions varies."""
+
 import json
 
 from tqdm import tqdm
@@ -8,6 +10,7 @@ from caracto.evaluation.run_evaluation import single_run
 
 
 def main() -> None:
+    """Run calibration on increasing measurement subset sizes and save the errors."""
     parser = get_main_parser()
     args = parser.parse_args()
     calibration_path = resolve_dataset_path(args)

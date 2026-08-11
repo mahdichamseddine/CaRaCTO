@@ -1,19 +1,21 @@
+"""Screen-height detection used to scale the manual annotation interface."""
+
 import warnings
 
 
 def min_screen_height(default_height: int = 1080) -> int:
-    """A method to obtain the screen height for optimized annotation interface scaling.
-    In case of multiple screens, the smallest screen height is chosen.
+    """Return the smallest connected screen's height in pixels.
 
     Args:
-        default_height (int, optional): The height in pixels to default to if the screen
-        height was not obtainable. Defaults to 1080.
+        default_height: height in pixels to default to if the screen height
+            was not obtainable.
 
     Returns:
-        int: Screen height in pixels.
+        Screen height in pixels.
+
     """
     try:
-        import mss  # noqa: PLC0415 (optional dependency, not in pyproject.toml)
+        import mss  # noqa: PLC0415 (optional dependency, not in pyproject.toml)  # ty: ignore[unresolved-import]
     except ImportError:
         message = (
             f"'mss' package not found, can't optimize interface to monitor height. "
@@ -34,6 +36,7 @@ def min_screen_height(default_height: int = 1080) -> int:
 
 
 def main() -> None:
+    """Print the detected minimum screen height."""
     print(f"Minimum screen height found is: {min_screen_height()} px.")
 
 

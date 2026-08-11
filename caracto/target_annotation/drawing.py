@@ -1,3 +1,5 @@
+"""OpenCV drawing helpers for visualizing target annotations and reprojections."""
+
 import cv2
 import numpy as np
 
@@ -8,6 +10,7 @@ def draw_annotation(
     *,
     annotate_mode: bool = True,
 ) -> np.ndarray:
+    """Draw the outer/inner triangles and edges, plus corner points if annotate_mode."""
     outer_triangle = annotation["outer_triangle"]
     inner_triangle = annotation["inner_triangle"]
     corner_edges = annotation["corner_edges"]
@@ -32,6 +35,7 @@ def draw_lines(
     color: tuple[int, int, int],
     line_thickness: int,
 ) -> np.ndarray:
+    """Draw each line segment in lines onto a copy of input_image."""
     image_copy = input_image.copy()
     for line in lines:
         cv2.line(
@@ -51,6 +55,7 @@ def draw_points(
     color: tuple[int, int, int],
     marker_thickness: int,
 ) -> np.ndarray:
+    """Draw a cross marker at each point onto a copy of input_image."""
     image_copy = input_image.copy()
     for point in points:
         cv2.drawMarker(
@@ -71,6 +76,7 @@ def draw_rectangle(
     color: tuple[int, int, int],
     line_thickness: int = 2,
 ) -> np.ndarray:
+    """Draw a rectangle from start_point to end_point onto a copy of input_image."""
     image_copy = np.copy(input_image)
     cv2.rectangle(
         img=image_copy,
@@ -89,6 +95,7 @@ def draw_reprojection(
     color: tuple[int, int, int] = (0, 255, 0),
     marker_size: int = 5,
 ) -> np.ndarray:
+    """Draw a star marker at each reprojected point onto a copy of input_image."""
     image_copy = input_image.copy()
     for p in reprojected.squeeze():
         cv2.drawMarker(
@@ -108,6 +115,7 @@ def draw_triangle(
     color: tuple[int, int, int],
     line_thickness: int,
 ) -> np.ndarray:
+    """Draw a closed triangle outline onto a copy of input_image."""
     image_copy = input_image.copy()
     cv2.polylines(
         image_copy,

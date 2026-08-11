@@ -1,3 +1,5 @@
+"""Base class for camera-radar extrinsic calibration setups."""
+
 import random
 from enum import Enum
 from pathlib import Path
@@ -15,11 +17,15 @@ NUM_CALIBRATION_PARAMS = 6  # 3 rotation + 3 translation extrinsic parameters
 
 
 class RangeMethod(Enum):
+    """Which sensor's range measurement to use in the calibration residuals."""
+
     RADAR = 0
     CAMERA = 1
 
 
 class CalibrationSetup:
+    """Loads a CaractoDataset and exposes it in the shapes calibration code expects."""
+
     def __init__(
         self,
         calibration_path: Path,
@@ -28,6 +34,7 @@ class CalibrationSetup:
         simulation_std: tuple[float, float, float] | None = None,  # r, theta, px
         subset: int | None = None,
     ) -> None:
+        """Load calibration_path and rebuild the legacy camera/optitrack/radar dicts."""
         if isinstance(x0, list):
             assert len(x0) == NUM_CALIBRATION_PARAMS, "Expected 6 initial values"
             x0 = np.array(x0)
@@ -107,12 +114,14 @@ class CalibrationSetup:
         ]
 
     def compute_residuals(self, x: np.ndarray) -> np.ndarray:
+        """Compute the calibration residual vector for x; implemented by subclasses."""
         raise NotImplementedError
 
     def get_initial_guess(
         self,
         fixed_params: list[bool] | npt.NDArray[np.bool_] | None = None,
     ) -> np.ndarray:
+        """Return x0, or its non-frozen entries if fixed_params is given."""
         if fixed_params is None:
             return self.x0
         if isinstance(fixed_params, list):
@@ -133,12 +142,14 @@ class CalibrationSetup:
         pixel_coords: np.ndarray,
         w: float,
     ) -> tuple[np.ndarray, np.ndarray]:
+        """Back-project pixel_coords at depth w through xform into 3D."""
         j = self.camera_matrix_inv @ np.append(pixel_coords, [1])
         wj = np.append(w * j, [1])
 
         return xform @ wj, j
 
     def get_camera_measurements(self, key: str) -> tuple[float, np.ndarray]:
+        """Return this position's camera range and pixel (simulated if configured)."""
         camera_range = self.camera_data[key][-1]
         camera_pixel = self.camera_data[key][2]
 
@@ -153,6 +164,7 @@ class CalibrationSetup:
         return float(camera_range), np.array(camera_pixel)
 
     def get_radar_measurements(self, key: str) -> tuple[float, float]:
+        """Return this position's radar range/azimuth (simulated if configured)."""
         radar_range = 0
         radar_azimuth = 0
 
@@ -181,6 +193,7 @@ class CalibrationSetup:
         return radar_range, radar_azimuth
 
     def check_frozen_params(self, x_in: np.ndarray) -> np.ndarray:
+        """Expand x_in back to full parameter length, filling in any frozen values."""
         if self.frozen_params is None:
             return x_in
 

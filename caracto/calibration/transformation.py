@@ -1,9 +1,12 @@
+"""Conversion between the 6-parameter extrinsic vector and 4x4 homogeneous transform."""
+
 import numpy as np
 
 
 def transformation_matrix(
     extrinsic_params: np.ndarray,
 ) -> tuple[np.ndarray, np.ndarray]:
+    """Build the 4x4 homogeneous transform and its inverse from extrinsic_params."""
     r_mat = rotation_matrix(extrinsic_params[0:3])
     t_vec = np.expand_dims(extrinsic_params[3:6], axis=0).T
 
@@ -20,9 +23,10 @@ def rotation_matrix(
     *,
     closed_form: bool = False,
 ) -> np.ndarray:
-    # https://en.wikipedia.org/wiki/Rotation_matrix#General_rotations
-    # alfa, beta, and gamma are the rotations around x, y, and z respectively
+    """Build a 3x3 rotation matrix from Euler angles (x, y, z order).
 
+    https://en.wikipedia.org/wiki/Rotation_matrix#General_rotations
+    """
     alpha = euler_angles[0]
     c_a, s_a = np.cos(alpha), np.sin(alpha)
     beta = euler_angles[1]

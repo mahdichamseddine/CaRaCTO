@@ -1,3 +1,5 @@
+"""Manual, interactive annotation of the corner-reflector target in camera images."""
+
 import sys
 from pathlib import Path
 
@@ -16,12 +18,15 @@ from caracto.target_annotation.select_annotations import select_corners
 
 
 class CornerReflectorAnnotator:
+    """Interactive corner-reflector annotation plus PnP-based 3D pose estimation."""
+
     def __init__(
         self,
         camera_intrinsics: dict,
         image_dimensions: tuple[int, int] = (1080, 1920),
         corner_edges_m: tuple[float, float] = (0.077, 0.20),  # Length of corner edges
     ) -> None:
+        """Precompute the undistorted camera matrix from camera_intrinsics."""
         self.screen_height = min_screen_height()
         self.corner_edges_m = corner_edges_m
 
@@ -40,6 +45,7 @@ class CornerReflectorAnnotator:
         measurement_name: str,
         input_image: np.ndarray,
     ) -> tuple[dict, np.ndarray]:
+        """Interactively annotate input_image; return the annotation + reprojection."""
         image = undistort_and_crop(
             input_image,
             self.old_camera_matrix,
@@ -60,6 +66,7 @@ class CornerReflectorAnnotator:
         return annotation, reprojected
 
     def annotation_3d_estimation(self, annotation: dict) -> tuple[dict, np.ndarray]:
+        """Solve PnP for annotation's 3D pose and reproject it back to 2D."""
         image_points_2d, target_points_3d = self.__get_correspondences(annotation)
         _success, rotation_vector, translation_vector = cv2.solvePnP(
             objectPoints=target_points_3d,
@@ -112,11 +119,12 @@ class CornerReflectorAnnotator:
         )
 
     def save_annotations(self, path: Path) -> None:
+        """Persist self.annotations to path; not yet implemented."""
         # TODO
-        pass
 
 
 def main() -> None:
+    """Interactively annotate every raw capture frame and preview the reprojection."""
     parser = get_main_parser()
     args = parser.parse_args()
     calibration_path = resolve_dataset_path(args)

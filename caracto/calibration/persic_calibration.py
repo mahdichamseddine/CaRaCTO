@@ -1,3 +1,5 @@
+"""Peršić et al. calibration baseline stub (unimplemented, needs RCS data)."""
+
 from pathlib import Path
 
 import numpy as np
@@ -20,6 +22,8 @@ CITATION = """
 
 
 class PersicSetup(CalibrationSetup):
+    """Peršić et al.'s baseline; not implemented, see __init__."""
+
     def __init__(
         self,
         calibration_path: Path,
@@ -28,6 +32,7 @@ class PersicSetup(CalibrationSetup):
         simulation_std: tuple[float, float, float] | None = None,  # r, theta, px
         subset: int | None = None,
     ) -> None:
+        """Raise: this baseline needs RCS data this dataset doesn't provide."""
         super().__init__(calibration_path, image_dimensions, x0, simulation_std, subset)
         msg = "Requires Radar Cross Section (RCS) which is not available from TinyRad."
         raise NotImplementedError(

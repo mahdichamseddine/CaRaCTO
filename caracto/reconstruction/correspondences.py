@@ -1,3 +1,5 @@
+"""Finds camera/radar target correspondences via depth estimation + segmentation."""
+
 import cv2
 import numpy as np
 import numpy.typing as npt
@@ -25,6 +27,7 @@ def compute_prompt_limits(
     azimuth_limit: float,
     elevation_limit: float,
 ) -> np.ndarray:
+    """Return the two 3D corners bounding radar_range/azimuth ± the given limits."""
     lower_limit = spherical_to_cartesian(
         radar_range,
         radar_azimuth - azimuth_limit,
@@ -46,6 +49,7 @@ def project_3d_to_2d(
     intrinsic_matrix: np.ndarray,
     extrinsic_matrix: np.ndarray | None = None,
 ) -> npt.NDArray[np.int64]:
+    """Project 3D points into clamped, integer pixel coordinates."""
     if extrinsic_matrix is None:
         extrinsic_matrix = np.identity(4)
 
@@ -78,6 +82,7 @@ def get_box_prompt(
     azimuth_range_deg: float = 10,  # ± azimuth_range_deg / 2
     elevation_range_deg: float = 15,  # ± elevation_range_deg / 2
 ) -> np.ndarray:
+    """Return the pixel-space box prompt around the radar's expected target position."""
     # degree to radians
     azimuth_limits_rad = (azimuth_range_deg * np.pi / 180) / 2
     elevation_limits_rad = (elevation_range_deg * np.pi / 180) / 2
@@ -102,6 +107,7 @@ def get_box_prompt(
 
 
 def merge_segmentation(masks_1: np.ndarray, _masks_2: np.ndarray | None) -> np.ndarray:
+    """Return the target mask; currently just the first depth-segmentation mask."""
     # TODO Place holder assuming best mask is the first in the depth
     return masks_1[0]
 
@@ -112,6 +118,7 @@ def compute_correspondences(
     *,
     debug: bool = False,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Return (disparity, target_pixels, target_mean) for the target in area_prompt."""
     # Depth estimation using Depth Anything V2
     normalized_depth, unscaled_disparity = depth_estimation(
         cv2.cvtColor(input_image, cv2.COLOR_BGR2RGB),
@@ -160,6 +167,7 @@ def compute_correspondences(
 
 
 def visualize(name: str, data: np.ndarray, *, color: bool, debug: bool = True) -> None:
+    """Show data in an OpenCV window named name, if debug is set."""
     if not debug:
         return
 
@@ -173,6 +181,7 @@ def visualize(name: str, data: np.ndarray, *, color: bool, debug: bool = True) -
 
 
 def main() -> None:
+    """Run calibration, find target correspondences per position, and print errors."""
     parser = get_main_parser()
     args = parser.parse_args()
     calibration_path = resolve_dataset_path(args)
@@ -250,21 +259,21 @@ def main() -> None:
         )
 
         # Visualize in 3D
-        target_pcd = o3d.geometry.PointCloud()
-        target_pcd.points = o3d.utility.Vector3dVector(points_3d)
+        target_pcd = o3d.geometry.PointCloud()  # ty: ignore[unresolved-attribute]
+        target_pcd.points = o3d.utility.Vector3dVector(points_3d)  # ty: ignore[unresolved-attribute]
         # target_pcd.colors
-        estimated_pcd = o3d.geometry.PointCloud()
-        estimated_pcd.points = o3d.utility.Vector3dVector([points_mean])
-        estimated_pcd.colors = o3d.utility.Vector3dVector([[1, 1, 0]])
-        gt_pcd = o3d.geometry.PointCloud()
-        gt_pcd.points = o3d.utility.Vector3dVector([gt_point])
-        gt_pcd.colors = o3d.utility.Vector3dVector([[1, 0, 0]])
-        mesh = o3d.geometry.TriangleMesh.create_coordinate_frame(
+        estimated_pcd = o3d.geometry.PointCloud()  # ty: ignore[unresolved-attribute]
+        estimated_pcd.points = o3d.utility.Vector3dVector([points_mean])  # ty: ignore[unresolved-attribute]
+        estimated_pcd.colors = o3d.utility.Vector3dVector([[1, 1, 0]])  # ty: ignore[unresolved-attribute]
+        gt_pcd = o3d.geometry.PointCloud()  # ty: ignore[unresolved-attribute]
+        gt_pcd.points = o3d.utility.Vector3dVector([gt_point])  # ty: ignore[unresolved-attribute]
+        gt_pcd.colors = o3d.utility.Vector3dVector([[1, 0, 0]])  # ty: ignore[unresolved-attribute]
+        mesh = o3d.geometry.TriangleMesh.create_coordinate_frame(  # ty: ignore[unresolved-attribute]
             size=1,
             origin=[0, 0, 0],
         )
 
-        o3d.visualization.draw_geometries(  # type: ignore[possibly-missing-submodule]
+        o3d.visualization.draw_geometries(  # ty: ignore[possibly-missing-submodule]
             [target_pcd, gt_pcd, estimated_pcd, mesh],
         )
 

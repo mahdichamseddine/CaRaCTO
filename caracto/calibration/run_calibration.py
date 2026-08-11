@@ -1,3 +1,5 @@
+"""Shared entry point for running either calibration baseline end to end."""
+
 from pathlib import Path
 
 import numpy as np
@@ -18,6 +20,7 @@ def run_calibration(
     simulation_std: tuple[float, float, float] | None = None,  # r, theta, px
     subset: int | None = None,
 ) -> tuple[CalibrationSetup, np.ndarray]:
+    """Build the CaRaCTO (if range_method given) or El Natour setup and fit it."""
     if range_method is not None:
         calibration_setup = CaRaCTOSetup(
             calibration_path,

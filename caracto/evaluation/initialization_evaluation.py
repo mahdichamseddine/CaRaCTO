@@ -1,3 +1,5 @@
+"""Evaluates calibration robustness to increasingly perturbed initial guesses."""
+
 import json
 
 import numpy as np
@@ -11,6 +13,7 @@ _rng = np.random.default_rng()
 
 
 def main() -> None:
+    """Run calibration under best/moderate/bad initial guesses and save the errors."""
     parser = get_main_parser()
     args = parser.parse_args()
     calibration_path = resolve_dataset_path(args)

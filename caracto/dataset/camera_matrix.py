@@ -1,3 +1,5 @@
+"""Camera-matrix undistortion helpers used before target annotation/reconstruction."""
+
 import cv2
 import numpy as np
 
@@ -7,6 +9,7 @@ def get_camera_matrix(
     dist_coeff: np.ndarray,
     image_dimensions: tuple[int, int],
 ) -> tuple[np.ndarray, np.ndarray, tuple[int, int, int, int]]:
+    """Return the undistorted camera matrix, its inverse, and the valid-pixel ROI."""
     height = image_dimensions[0]
     width = image_dimensions[1]
     new_camera_matrix, roi = cv2.getOptimalNewCameraMatrix(
@@ -32,6 +35,7 @@ def undistort_and_crop(
     new_camera_matrix: np.ndarray,
     roi: tuple[int, int, int, int],
 ) -> np.ndarray:
+    """Undistort input_image and crop it to the valid-pixel ROI."""
     x, y, w, h = roi
     output_image = cv2.undistort(
         input_image,

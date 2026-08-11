@@ -24,16 +24,6 @@ The primary goal of this project is to perform calibration between a camera and 
 *   **Evaluation:** Includes evaluation of calibration methods against established baselines, such as El Natour et al.
 *   **Analysis:** The project includes scripts for analyzing the reconstructed scene, such as identifying planes and measuring dimensions.
 
-### Key Technologies
-
-*   **Language:** Python
-*   **Core Libraries:**
-    *   NumPy & SciPy: For numerical operations and optimization.
-    *   OpenCV (`cv2`): For image processing.
-    *   PyTorch & Hugging Face `transformers`: For running the depth estimation model.
-    *   Open3D: For 3D data processing and point cloud manipulation.
-    *   Matplotlib: For data visualization.
-
 ## Getting Started
 
 ### Installation

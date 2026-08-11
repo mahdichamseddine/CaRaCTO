@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name            = "caracto-3d"
-version         = "2.0"
+version         = "3.0"
 readme          = "README.md"
 requires-python = ">=3.12,<3.13"
 license         = { file = "LICENSE" }
@@ -17,6 +17,7 @@ dependencies = [
     "numpy>=2.5.2",
     "open3d>=0.19.0",
     "opencv-python>=5.0.0.93",
+    "scipy>=1.18.0",
     "torch>=2.13.0",
     "transformers>=5.15.0",
 ]
@@ -36,7 +37,6 @@ preview     = true
 [tool.ruff.lint]
 select = ["ALL"]
 ignore = [
-    "D",      # docstrings not required; this project favors self-documenting code
     "T201",   # print() is the intended output mechanism for these CLI scripts
     "S101",   # assert is used deliberately for internal invariants, not untrusted input
     "S603",   # subprocess calls here use hardcoded, non-attacker-controlled arguments

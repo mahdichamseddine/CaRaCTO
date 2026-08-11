@@ -1,5 +1,4 @@
-"""Index-based alignment between a position's multi-frame modalities (camera burst
-frames vs. radar detection cycles).
+"""Index-based alignment between a position's camera burst and radar detections.
 
 Camera and radar are captured by independently-clocked acquisition loops that
 start/stop within a few cycles of each other, so their per-position frame/detection
@@ -22,6 +21,7 @@ def compute_frame_alignment(
     num_radar_detections: int,
     max_symmetric_trim: int = MAX_SYMMETRIC_TRIM,
 ) -> dict:
+    """Return the trimmed, index-aligned camera/radar ranges for one position."""
     diff = num_camera_frames - num_radar_detections
 
     if abs(diff) > max_symmetric_trim:

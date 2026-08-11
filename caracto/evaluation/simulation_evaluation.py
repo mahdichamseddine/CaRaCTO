@@ -1,3 +1,5 @@
+"""Evaluates calibration robustness to simulated measurement noise."""
+
 import json
 from pathlib import Path
 
@@ -15,6 +17,7 @@ def levels_simulation(
     n_runs: int,
     n_levels: int = 10,
 ) -> None:
+    """Run calibration under jointly increasing range/azimuth/pixel noise levels."""
     results_dict = {}
     for level in range(n_levels + 1):
         results_dict[level] = []
@@ -39,6 +42,7 @@ def range_simulation(
     n_runs: int,
     n_levels: int = 10,
 ) -> None:
+    """Run calibration under increasing radar range noise only."""
     results_dict = {}
     for level in range(n_levels + 1):
         results_dict[level] = []
@@ -63,6 +67,7 @@ def azimuth_simulation(
     n_runs: int,
     n_levels: int = 10,
 ) -> None:
+    """Run calibration under increasing radar azimuth noise only."""
     results_dict = {}
     for level in range(n_levels + 1):
         results_dict[level] = []
@@ -87,6 +92,7 @@ def pixel_simulation(
     n_runs: int,
     n_levels: int = 10,
 ) -> None:
+    """Run calibration under increasing camera pixel noise only."""
     results_dict = {}
     for level in range(n_levels + 1):
         results_dict[level] = []
@@ -105,6 +111,7 @@ def pixel_simulation(
 
 
 def main() -> None:
+    """Run all four noise-sweep simulations and save their results."""
     parser = get_main_parser()
     args = parser.parse_args()
     calibration_path = resolve_dataset_path(args)

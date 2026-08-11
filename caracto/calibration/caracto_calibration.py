@@ -1,3 +1,5 @@
+"""CaRaCTO calibration: triple-constraint (sphere/plane/z) residual optimization."""
+
 from pathlib import Path
 
 import numpy as np
@@ -16,6 +18,8 @@ from caracto.common import HD_1080, X0
 
 
 class CaRaCTOSetup(CalibrationSetup):
+    """Calibration via sphere/plane/z residuals over back-projected radar points."""
+
     def __init__(
         self,
         calibration_path: Path,
@@ -25,10 +29,12 @@ class CaRaCTOSetup(CalibrationSetup):
         simulation_std: tuple[float, float, float] | None = None,  # r, theta, px
         subset: int | None = None,
     ) -> None:
+        """Load the dataset and record which range_method feeds the target scale."""
         super().__init__(calibration_path, image_dimensions, x0, simulation_std, subset)
         self.range_method = range_method
 
     def compute_residuals(self, x: np.ndarray) -> np.ndarray:
+        """Stack sphere/plane/z residuals for every measurement key."""
         # check if there are any frozen parameters and add them to the parameter list
         # if there are no frozen parameters x and calibration_params are the same
         calibration_params = self._get_calibration_params(x)
@@ -68,6 +74,7 @@ class CaRaCTOSetup(CalibrationSetup):
 
 
 def main() -> None:
+    """Run CaRaCTO calibration and print the resulting extrinsic transform."""
     parser = get_main_parser()
     args = parser.parse_args()
     calibration_path = resolve_dataset_path(args)

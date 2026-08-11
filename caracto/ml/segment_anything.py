@@ -1,3 +1,5 @@
+"""Instance segmentation via the Segment Anything Model (SAM)."""
+
 import numpy as np
 import torch
 from transformers import SamModel, SamProcessor
@@ -13,6 +15,7 @@ def instance_segmentation(
     input_points: list[list[list[int]]] | None = None,
     input_boxes: list[list[list[list[int]]]] | None = None,
 ) -> np.ndarray:
+    """Return SAM instance masks for image, prompted by input_points/input_boxes."""
     model = SamModel.from_pretrained(ModelWeights.SAM_HUGE)
     processor = SamProcessor.from_pretrained(ModelWeights.SAM_HUGE)
     inputs = processor(
@@ -25,7 +28,7 @@ def instance_segmentation(
     reshaped_input_sizes = inputs["reshaped_input_sizes"]
 
     device = get_torch_device()
-    model = model.to(device)  # type: ignore[invalid-argument-type]
+    model = model.to(device)  # ty: ignore[invalid-argument-type]
     inputs = inputs.to(device)
 
     with torch.no_grad():

@@ -1,3 +1,5 @@
+"""Shared argparse setup for scripts that need a dataset path or Hub repo_id."""
+
 import argparse
 from pathlib import Path
 
@@ -19,6 +21,7 @@ def resolve_dataset_path(args: argparse.Namespace) -> Path:
 
 
 def get_main_parser() -> argparse.ArgumentParser:
+    """Build the shared --dataset_path/--repo_id/--revision argument parser."""
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--dataset_path",

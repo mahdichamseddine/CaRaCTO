@@ -1,3 +1,5 @@
+"""Shared constants used across calibration, evaluation, and reconstruction."""
+
 from pathlib import Path
 
 import numpy as np

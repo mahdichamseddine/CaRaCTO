@@ -1,9 +1,12 @@
+"""Contrast/brightness enhancement applied before manual target annotation."""
+
 import cv2
 import numpy as np
 
 
 # TODO
 def enhance_image(input_image: np.ndarray, area_corners: np.ndarray) -> np.ndarray:
+    """Bilateral-filter and gamma-correct input_image within area_corners."""
     area_mask = np.ones_like(input_image)
     cv2.rectangle(
         img=area_mask,

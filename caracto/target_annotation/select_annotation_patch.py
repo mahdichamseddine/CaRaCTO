@@ -1,3 +1,5 @@
+"""Interactive OpenCV crop-patch selection around the radar retroreflector."""
+
 import sys
 from typing import Any
 
@@ -8,15 +10,10 @@ from caracto.target_annotation.drawing import draw_rectangle
 
 
 def select_patch(input_image: np.ndarray) -> np.ndarray | None:
-    """Method to select the patch containing the radar retroreflector in the image for
-    corner annotation.
+    """Interactively select the patch containing the radar retroreflector.
 
-    Args:
-        input_image (np.ndarray): The input image to select the patch for cropping.
-
-    Returns:
-        np.ndarray: Array containing the top left and bottom right corners of
-        the patch selected.
+    Returns the top-left/bottom-right corners of the selected patch, or None
+    if cancelled.
     """
 
     def select_patch_callback(
@@ -26,7 +23,7 @@ def select_patch(input_image: np.ndarray) -> np.ndarray | None:
         _flags: int,
         _param: Any | None,  # noqa: ANN401 (OpenCV callback param, genuinely untyped)
     ) -> None:
-        """The callback to detect a selection behavior on the OpenCV window."""
+        """Handle mouse events for interactively drawing the crop rectangle."""
         # if the left mouse button was DOWN, start RECORDING
         # (x, y) coordinates and indicate that cropping is being
         nonlocal mouse_clicked, x_start, y_start, x_end, y_end

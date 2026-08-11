@@ -1,3 +1,5 @@
+"""Runs a calibration and scores it against OptiTrack ground truth."""
+
 from pathlib import Path
 
 import numpy as np
@@ -22,6 +24,7 @@ def compute_errors(
     simulation_std: tuple[float, float, float] | None = None,  # r, theta, px
     subset: int | None = None,
 ) -> dict[str, tuple[float, float]]:
+    """Calibrate with range_method and return mean 3D/2D reprojection error."""
     calibration_setup, x_result = run_calibration(
         calibration_path,
         image_dimensions,
@@ -67,6 +70,7 @@ def single_run(
     simulation_std: tuple[float, float, float] | None = None,  # r, theta, px
     subset: int | None = None,
 ) -> dict[str, dict[str, tuple[float, float]]]:
+    """Run all three baselines (El Natour, CaRaCTO radar, CaRaCTO camera) and score."""
     errors = {}
     errors["elnatour"] = compute_errors(
         calibration_path,
@@ -97,6 +101,7 @@ def single_run(
 
 
 def main() -> None:
+    """Run all three baselines once with the default initial guess and print errors."""
     parser = get_main_parser()
     args = parser.parse_args()
     calibration_path = resolve_dataset_path(args)
