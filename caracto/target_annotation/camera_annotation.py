@@ -120,7 +120,7 @@ class CornerReflectorAnnotator:
 
     def save_annotations(self, path: Path) -> None:
         """Persist self.annotations to path; not yet implemented."""
-        # TODO
+        # TODO: implement (on-disk format for path not yet decided)
 
 
 def main() -> None:

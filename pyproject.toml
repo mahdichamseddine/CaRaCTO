@@ -39,13 +39,10 @@ select = ["ALL"]
 ignore = [
     "T201",   # print() is the intended output mechanism for these CLI scripts
     "S101",   # assert is used deliberately for internal invariants, not untrusted input
-    "S603",   # subprocess calls here use hardcoded, non-attacker-controlled arguments
-    "S607",   # ...same, for partial-path executables (git, python)
     "CPY001", # no per-file copyright headers; the repo LICENSE file already covers this
-    "TD002",  # TODO comments here predate this project's conventions; not retrofitting
-    "TD003",  # ...author/issue-link metadata on existing TODOs
-    "TD004",  # ...colon-after-TODO formatting
-    "TD005",  # ...missing description text
+    "TD002",  # TODOs here aren't attributed to a GitHub username or filed as issues;
+    "TD003",  # ...doing so is a real workflow decision (would need real issues filed
+    # ......... on the now-public repo), not a mechanical formatting fix
     "FIX002", # resolving these TODOs means implementing missing features (e.g.
     # ......... camera_annotation.py's save_annotations()), out of scope here
     "PLR0913", # these flag legitimate multi-parameter pipeline functions (run_calibration,

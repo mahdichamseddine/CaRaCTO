@@ -185,7 +185,7 @@ def optimize_scene_disparity(
 
     if (path is None) or (not path.exists()):
         rounds = []
-        for _i in range(1):  # TODO more runs for smoother output?
+        for _i in range(1):  # TODO: more runs for smoother output?
             losses = [compute_manhattan_loss(j) for j in range(int(max_shift + 1))]
             rounds.append(losses)
         rounds = np.array(rounds)
@@ -195,7 +195,7 @@ def optimize_scene_disparity(
     else:
         rounds = np.load(path)
 
-    # TODO smooth?
+    # TODO: smooth the per-shift loss curve before taking its argmin?
     optimized_shift = np.argmin(np.mean(rounds, axis=0))
 
     return unscaled_disparity + optimized_shift

@@ -108,7 +108,7 @@ def get_box_prompt(
 
 def merge_segmentation(masks_1: np.ndarray, _masks_2: np.ndarray | None) -> np.ndarray:
     """Return the target mask; currently just the first depth-segmentation mask."""
-    # TODO Place holder assuming best mask is the first in the depth
+    # TODO: placeholder assuming the best mask is the first in the depth segmentation
     return masks_1[0]
 
 
@@ -156,7 +156,7 @@ def compute_correspondences(
         visualize("Depth - Masked", mask, color=False, debug=debug)
         break
 
-    # TODO add image segmentation using points
+    # TODO: add image segmentation using points
 
     target_mask = merge_segmentation(depth_segmentation_masks, None)
     x, y = np.nonzero(target_mask)

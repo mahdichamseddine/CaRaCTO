@@ -78,7 +78,7 @@ def select_corners(
         key_press = cv2.waitKey(1) & 0xFF
         if key_press == ord("c"):  # cancel
             cv2.destroyWindow(window_name)
-            sys.exit()  # TODO handle cancel properly
+            sys.exit()  # TODO: handle cancel properly (currently same as quit)
         elif key_press == ord("q"):  # exit
             cv2.destroyWindow(window_name)
             sys.exit()

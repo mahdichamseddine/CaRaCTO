@@ -4,7 +4,8 @@ import cv2
 import numpy as np
 
 
-# TODO
+# TODO: alpha/beta are no-op identity values (1.0/0) and gamma is hardcoded;
+# tune or expose these as parameters instead
 def enhance_image(input_image: np.ndarray, area_corners: np.ndarray) -> np.ndarray:
     """Bilateral-filter and gamma-correct input_image within area_corners."""
     area_mask = np.ones_like(input_image)
